@@ -1,0 +1,87 @@
+<html lang="en" id="root">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300&family=Major+Mono+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="code.js"></script>
+    <link rel="icon" type="image/png" href="./a/7.png">
+    <title>5d6 Idle</title>
+</head>
+<body>
+    <header id="header"></header>
+    <main>
+        <div class="modal noDisplay">
+            <div class="modalContainer">
+                <div class="close">x</div>
+                <!-- <div class="unfolded" id="unfolded"></div> -->
+            </div>
+        </div>
+        <section class="leftSection">
+            <div class="multiBox" id="upgrades"></div>
+        </section>
+        <section class="middleSection">
+            <div class="sRow topRow">
+                <div class="banner">Left click to add a pip</div>
+                <div class="unfBox">
+                    <div class="unfolded" id="u0"></div>
+                    <div class="unfolded" id="u1"></div>
+                    <div class="unfolded" id="u2"></div>
+                    <div class="unfolded" id="u3"></div>
+                    <div class="unfolded" id="u4"></div>
+                </div>
+                <div class="banner">Right click to remove a pip</div>
+            </div>
+            <div class="sRow">
+                <div class="bounceMe" id="bounceMe">
+                    <div class="container" id="d0"></div>
+                    <div class="container" id="d1"></div>
+                    <div class="container" id="d2"></div>
+                    <div class="container" id="d3"></div>
+                    <div class="container" id="d4"></div>
+                </div>
+            </div>
+            <div class="sRow" id="lastRow">
+                <div class="dieOptions" id="do0">
+                    <div class="button ascend" data-ascRef="0">Ascend</div>
+                </div>
+                <div class="dieOptions" id="do1">
+                    <div class="button ascend" data-ascRef="1">Ascend</div>
+                </div>
+                <div class="dieOptions" id="do2">
+                    <div class="button ascend" data-ascRef="2">Ascend</div>
+                </div>
+                <div class="dieOptions" id="do3">
+                    <div class="button ascend" data-ascRef="3">Ascend</div>
+                </div>
+                <div class="dieOptions" id="do4">
+                    <div class="button ascend" data-ascRef="4">Ascend</div>
+                </div>
+                <div id="prestige" class="noDisplay"></div>
+                <div id="goalBar" class="noDisplay"><div class="goalBar"></div><div class="goalText"></div></div>
+            </div>
+        </section>
+        <section class="rightSection">
+            <div class="bundle rBundle">
+                <div class="prefix">Cost: <a id="pipCost"></a> points</div>
+                <div class="button buyPip">Buy a pip</div>
+            </div>
+            <div class="statsBox">
+                <div class="bundle rBundle"><div class="prefix">Estimated points per minute:</div><a class="appendR" data-ref="ppm"></a></div>
+                <div class="bundle rBundle"><div class="prefix">Minimum points per roll:</div><a class="appendR" data-ref="min"></a></div>
+                <div class="bundle rBundle"><div class="prefix">Maximum points per roll:</div><a class="appendR" data-ref="max"></a></div>
+                <div class="bundle rBundle noDisplay" id="spendPP">
+                    <div class="button spendPP">Spend PP</div>
+                </div>
+            </div>
+            <div class="latestResults" id="results"></div>
+        </section>
+    </main>
+    <footer id="footer" class="spin"><div class="spinLabel">Roll</div><div class="autoTick"></div></footer>
+    </body>
+</html>
+
+
