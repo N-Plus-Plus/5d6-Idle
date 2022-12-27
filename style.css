@@ -55,6 +55,10 @@ body{
     background-size: contain;
 }
 
+i { margin: 0 0.5rem 0 0.3rem; }
+u { margin: 0 0.5rem; }
+a { color: var(--g1); }
+
 .modal{
     width: 100%;
     height: calc( 100% - 6rem );
@@ -85,6 +89,7 @@ body{
     justify-content: center;
     position: relative;
     padding: 2rem;
+    overflow: auto;
 }
 
 .unfolded{
@@ -110,6 +115,7 @@ body{
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    transform:translateY( calc( var( --face ) / -4 ) )
 }
 
 .on{ position: relative; cursor: pointer; }
@@ -148,7 +154,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .rBundle{
     justify-content: right;
 }
-.bundle.rBundle.noDisplay{ display: none; }
+.bundle.noDisplay{ display: none; }
 .vert{
     flex-direction: column;
 }
@@ -158,7 +164,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .math{ margin-left: 0.5rem; color: var(--q3);}
 
 .heading,.rHeading{ 
-    margin: 2rem 0 -1rem 0;
+    margin: 2rem 0 0rem 0;
     color: white;
     font-size: 2rem;
     width: 100%;
@@ -170,7 +176,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     margin: 0 0;
 }
 .label{ 
-    margin: 2rem 0 -1rem 0;
+    margin: 1rem 0 -1rem 0;
     color: var(--g1);
     width: 100%;
     text-align: left;
@@ -214,7 +220,10 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     justify-content: center;
     align-items: center;
     font-size: 1.5rem; 
-    color: white;}
+    color: white;
+    pointer-events: none;
+}
+.important{ filter: drop-shadow( 0 0 0.5rem black ); }
 .face{
     pointer-events: none;
     width: var(--face);
@@ -436,3 +445,54 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .goalBar{ height: 100%; background-color: black; position: absolute; transition: width 0.4s; z-index: -5; opacity: 0.25;}
 .button.prestige{ margin: 0 1rem 0 0; color: black;}
 .button.spendPP.disabled{ pointer-events: all; }
+
+.info{
+    content: 'i';
+    position: absolute;
+    bottom: 5rem;
+    left: 2rem;
+    width: 3rem;
+    height: 3rem;
+    background-color: var( --g3 );
+    border-radius: 50%;
+    border: double 0.3rem var(--g1);
+    color: white;
+    text-shadow: 0 0 0.5rem black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 50;
+}
+.deets{
+    color: var(--g1);
+    width: 100%;
+    display: flex;
+    margin-top: 1rem;
+}
+.ind{
+    margin-left: 2rem;
+    width: calc( 100% - 2rem );
+}
+.key{
+    color: var(--g1);
+    width: 10%;
+    display: flex;
+    margin-top: 1rem;
+}
+.descriptor{
+    color: var(--g1);
+    width: 90%;
+    display: flex;
+    margin-top: 1rem;
+}
+.generalText{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+}
+.generalText a, .generalText div{
+    margin: auto 1rem auto 0;
+}

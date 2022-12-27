@@ -49,6 +49,9 @@ function clicked( e ){
     else if( c.contains(`spendPP`) ){ ppModal(); }
     else if( c.contains(`buyPerk`) ){ buyPerk( t.getAttribute(`data-ref`) ); }
     else if( c.contains(`prestige`) ){ prestige(); }
+    else if( c.contains(`info`) ){ infoModal(); }
+    else if( c.contains(`hardReset`) ){ hardReset(); }
+    else if( c.contains(`softReset`) ){ softReset(); }
 }
 
 function mouseDown( e ){
@@ -292,7 +295,9 @@ const multNames = [
 
 function buildUpgradeMenu(){
     let t = document.getElementById(`upgrades`);
-    t.innerHTML = `<div class="heading">Multipliers</div>`;
+    t.innerHTML = `<div class="bundle noDisplay" id="spendPP">
+        <div class="button spendPP">Spend PP</div><div class="append">Gain powerful perks</div></div>
+    <div class="heading">Multipliers</div>`;
     for( let i = 0; i < multNames.length; i++ ){
         let x = multNames[i].id;
         let v = document.createElement(`div`);
@@ -309,7 +314,7 @@ function buildUpgradeMenu(){
 
 function updateHeader(){
     let h = document.getElementById(`header`);
-    let pp = `<div class="pips">`;
+    let pp = `<div>`;
     if( game.prestige.watermark >= 1 ){ pp += `pp = ${numDisplay( game.prestige.curr )} ( best = ${numDisplay(game.prestige.watermark)} )` }
     pp += `</div>`
     h.innerHTML = `<div class="third">${pp}</div><div class="third cThird"><div class="pip"></div> x <div class="pips">${numDisplay( game.pips )}</div></div><div class="third rThird">points = <div class="pips">${numDisplay( game.points )}</div></div>`
@@ -450,6 +455,8 @@ function prestige(){
     showUnfolded();
     showPpr();
     conditionalShow();
+    localStorage.setItem( `backup-game` , JSON.stringify( game ) );
+    localStorage.setItem( `backup-ach` , JSON.stringify( ach ) );
 }
 
 
@@ -874,6 +881,46 @@ function ppModal(){
     checkDisable();
 }
 
+function infoModal(){
+    document.querySelector(`.modal`).classList.remove(`noDisplay`);
+    let t = document.querySelector(`.modalContainer`);
+    t.innerHTML = `<div class="close">x</div>
+    <div class="heading">General Info</div>
+    <div class="deets"><b>Tips</b></div>
+    <div class="deets">Achievements matter!</div>
+    <div class="deets ind">The ones marked <i>Infinite</i> may be achieved again and again, and keep adding bonuses when gained</div>
+    <div class="deets ind">The ones marked <i>Finite</i> are the only way to speed up the animation time of the dice rolling</div>
+    <div class="deets ind">The ones marked <i>Hidden</i> probably aren't even implemented yet, I wouldn't worry about them</div>
+    <div class="deets">After your first Prestige at one million points (or more), you will be able to purchase Perks</div>
+    <div class="deets">The cost of Perks do <u>not</u> reflect their relative value - Choose wisely based on yoru play stye</div>
+    <div class="deets">Depending on the stage of the game and Perks you have bought, the optimal strategy will change drastically</div>
+    <div class="deets"></div>
+    <div class="deets"><b>Controls</b></div>
+    <div class="deets">You can "rapid-press" any button by just clicking it and holding down the mouse button</div>
+    <div class="deets">Buttons for buying Upgrades and Pips will allow your to "buy max" by right-clicking on them</div>
+    <div class="heading">Key Bindings</div>
+    <div class="bundle">
+    <div class="key"><b>Key</b></div>
+        <div class="descriptor"><b>Bound To</b></div>
+    </div>
+    <div class="bundle">
+        <div class="key">[Space]</div>
+        <div class="descriptor">Roll the dice</div>
+    </div>
+    <div class="bundle">
+    <div class="key">p</div>
+    <div class="descriptor">Buy one pip</div>
+    </div>
+    <div class="bundle">
+    <div class="key">1 - 5</div>
+    <div class="descriptor">Ascend the corresponding die once</div>
+    </div>
+    <div class="heading">Stuck?</div>
+    <div class="generalText"><a>Perform a </a><div class="button softReset">Soft Reset</div><a> to reset to your last Prestige, or if you want to clear everything, perform a </a><div class="button hardReset">Hard Reset</div></div>
+    `;
+    
+}
+
 function numDisplay( x ){
     x = Math.floor( x );
     if( x >= 1e7 ){ return sciNum( x, 3 ); }
@@ -899,6 +946,12 @@ function saveState(){
 
 function hardReset(){
     localStorage.clear();
+    location.reload();
+}
+
+function softReset(){
+    localStorage.setItem( `game`, localStorage.getItem( `backup-game` ) );
+    localStorage.setItem( `ach`, localStorage.getItem( `backup-ach` ) );
     location.reload();
 }
 
