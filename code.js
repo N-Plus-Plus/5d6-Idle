@@ -456,6 +456,7 @@ function prestige(){
     showUnfolded();
     showPpr();
     conditionalShow();
+    updateAscCosts();
     localStorage.setItem( `backup-game` , JSON.stringify( game ) );
     localStorage.setItem( `backup-ach` , JSON.stringify( ach ) );
 }
