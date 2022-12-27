@@ -52,6 +52,7 @@ function clicked( e ){
     else if( c.contains(`info`) ){ infoModal(); }
     else if( c.contains(`hardReset`) ){ hardReset(); }
     else if( c.contains(`softReset`) ){ softReset(); }
+    else if( c.contains(`achievements`) ){ achieveModal(); }
 }
 
 function mouseDown( e ){
@@ -373,7 +374,7 @@ function showPrestige(){
     if( pg == Infinity ){ pg = 0; }
     let delta = Math.max( 0, pg - game.prestige.watermark );
     let suff = ``;
-    if( delta > 0 ){ suff = ` and +${ numDisplay( delta ) }x to all rolls`}
+    if( delta > 0 ){ suff = ` and +${ numDisplay( delta ) }x to all rolls`.replace(` +1x`, ` 1x ( no benefit )` ).replace( ` +`, game.prestige.watermark == 0 ? ` ` : ` +`); }
     document.getElementById(`prestige`).innerHTML = `<div class="button prestige">Prestige</div> to receive ${numDisplay( pg ) } PP${suff}`;
 }
 function updateFooter(){
@@ -583,9 +584,7 @@ function rebalanceAchievement(){
 
 var ach = {
     infinite: {
-        ascension: 0,
-        minAscension: 0,
-        score: 0,
+        ascension: 0, minAscension: 0, score: 0,
         rolls: { auto: 0, manual: 0 },
         upgrade: { five: 0, four: 0, three: 0, two: 0, twoPair: 0, fullHouse: 0, straight: 0 },
         combo: { five: 0, four: 0, three: 0, two: 0, twoPair: 0, fullHouse: 0, straight: 0 },
@@ -608,9 +607,11 @@ var ach = {
 let aDictionary = {
     ascension: { name: `Ascension`, desc: `Ascend a die to rank #`, comp: `Ascended a die to rank # for the first time!` },
     minAscension: { name: `Ascend-All`, desc: `Ascend all dice to rank #`, comp: `Ascended all dice to rank # for the first time!` },
-    score: { name: `High Score`, desc: `Reach a score of 10 x <sup>#</sup>`, comp: `Reachd a score of 10 x <sup>#</sup> for the first time!` },
+    score: { name: `High Score`, desc: `Reach a score of 10 to the power of #`, comp: `Reachd a score of 10 x <sup>#</sup> for the first time!` },
     rollsAuto: { name: `Auto Roller`, desc: `Let the dice roll # times automatically`, comp: `# automatic rolls!` },
     rollsManual: { name: `Hands On`, desc: `Roll the dice # times manually`, comp: `# manual rolls!` },
+    upgrade: { name: `Upgrade ?`, desc: `Upgrade ? Multiplier # times`, comp: `? upgraded # times!` },
+    combo: { name: `Roll a ?`, desc: `Rolled ? # times`, comp: `? rolled # times!` },
     // Upgrades
 
     // SECRETS (that were a pain in the butt to hide, so please stop trying to spoil the surprise)
@@ -850,7 +851,8 @@ function showModal(){
 function ppModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
-    t.innerHTML = `<div class="close">x</div>`;
+    t.innerHTML = `<div class="close">x</div><div class="heading firstH">Perks</div>`;
+    t.innerHTML += `<div class="perkRow"><div class="perkText" style="width: 20%;">Perk</div><div class="perkText" style="width: 55%;">Description</div><div class="perkText" style="width: 20%;">Cost</div><div style="width: 11.5rem;"></div></div>`
     let perks = Object.keys( game.prestige.perks );
     for( p in perks ){
         let r = document.createElement(`div`);
@@ -863,7 +865,7 @@ function ppModal(){
         x = document.createElement(`div`);
         x.classList = `perkText`;
         x.innerHTML = game.prestige.perks[perks[p]].desc;
-        x.style.width = `60%`;
+        x.style.width = `55%`;
         r.appendChild(x);
         x = document.createElement(`div`);
         x.classList = `perkText`;
@@ -885,27 +887,18 @@ function infoModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
     t.innerHTML = `<div class="close">x</div>
-    <div class="heading">General Info</div>
-    <div class="deets"><b>Tips</b></div>
-    <div class="deets">Achievements matter!</div>
-    <div class="deets ind">The ones marked <i>Infinite</i> may be achieved again and again, and keep adding bonuses when gained</div>
-    <div class="deets ind">The ones marked <i>Finite</i> are the only way to speed up the animation time of the dice rolling</div>
-    <div class="deets ind">The ones marked <i>Hidden</i> probably aren't even implemented yet, I wouldn't worry about them</div>
-    <div class="deets">After your first Prestige at one million points (or more), you will be able to purchase Perks</div>
-    <div class="deets">The cost of Perks do <u>not</u> reflect their relative value - Choose wisely based on yoru play stye</div>
-    <div class="deets">Depending on the stage of the game and Perks you have bought, the optimal strategy will change drastically</div>
-    <div class="deets"></div>
+    <div class="heading firstH">General Information</div>
     <div class="deets"><b>Controls</b></div>
     <div class="deets">You can "rapid-press" any button by just clicking it and holding down the mouse button</div>
     <div class="deets">Buttons for buying Upgrades and Pips will allow your to "buy max" by right-clicking on them</div>
-    <div class="heading">Key Bindings</div>
+    <div class="deets"></div>
     <div class="bundle">
     <div class="key"><b>Key</b></div>
-        <div class="descriptor"><b>Bound To</b></div>
+    <div class="descriptor"><b>Bound To</b></div>
     </div>
     <div class="bundle">
-        <div class="key">[Space]</div>
-        <div class="descriptor">Roll the dice</div>
+    <div class="key">[Space]</div>
+    <div class="descriptor">Roll the dice</div>
     </div>
     <div class="bundle">
     <div class="key">p</div>
@@ -915,10 +908,125 @@ function infoModal(){
     <div class="key">1 - 5</div>
     <div class="descriptor">Ascend the corresponding die once</div>
     </div>
-    <div class="heading">Stuck?</div>
+    <div class="deets"></div>
+    <div class="deets"><b>Tips & General Advice</b></div>
+    <div class="deets">Achievements matter!</div>
+    <div class="deets ind">The ones marked <i>Finite</i> speed up the animation time of the dice rolling</div>
+    <div class="deets ind">The ones marked <i>Infinite</i> may be achieved again and again, and keep adding bonuses when gained</div>
+    <div class="deets ind">The ones marked <i>Hidden</i> probably aren't even implemented yet, I wouldn't worry about them</div>
+    <div class="deets">After your first Prestige at one million points (or more), you will be able to purchase Perks (the first costs 2PP)</div>
+    <div class="deets">The cost of Perks does <u>not</u> reflect their relative value - Choose wisely based on your play stye</div>
+    <div class="deets">Depending on the stage of the game and Perks you have bought, the optimal strategy will change drastically</div>
+    <div class="deets">Blank-face dice are completely ignored for the purposes of calculating score (including their ascension level!)</div>
+    <div class="deets">The Results rows can be a bit confusing - you'll figure it out ... only the final number matters anyway ;)</div>
+    <div class="deets"></div>
+    <div class="deets"><b>Stuck?</b></div>
     <div class="generalText"><a>Perform a </a><div class="button softReset">Soft Reset</div><a> to reset to your last Prestige, or if you want to clear everything, perform a </a><div class="button hardReset">Hard Reset</div></div>
     `;
-    
+}
+
+function achieveModal(){
+    document.querySelector(`.modal`).classList.remove(`noDisplay`);
+    let t = document.querySelector(`.modalContainer`);
+    t.innerHTML = `<div class="close">x</div>
+    <div class="heading firstH">Finite Achievements</div>
+    <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.5% (static), currently -${numDisplay( ( 0.5 * ach.balance.finite ) )}%</div>
+    <div class="achTable">
+        <div class="hRow">
+            <div class="hCol"><div class="space"></div>Combo</div>
+            <div class="dCol f1 padMe"></div>
+            <div class="dCol f2 padMe"></div>
+            <div class="dCol f3 padMe"></div>
+            <div class="dCol f4 padMe"></div>
+            <div class="dCol f5 padMe"></div>
+            <div class="dCol f6 padMe"></div>
+            <div class="dCol f7 padMe"></div>
+            <div class="dCol f8 padMe"></div>
+            <div class="dCol f9 padMe"></div>
+        </div>
+    </div>
+    <div class="heading">Infinite Achievements</div>
+    <div class="deets">Every rank of each achievement below improves your Prestige Points (PP) rewards by 1% (diminishing), currently +${numDisplay( ( 1 - Math.pow( 1 - ( 0.01 ), ach.balance.infinite ) ) * 100 )}%</div>
+    <div class="achContainer"></div>
+    <div class="heading">Hidden Achievements</div>
+    <div class="deets">...shh</div>
+    `;
+    buildInfiniteTable();
+    buildFiniteTable();
+}
+
+function buildFiniteTable(){
+    let t = document.querySelector(`.achTable`);
+    let i = 0;
+    for( m in multNames ){
+        let row = document.createElement(`div`);
+        row.classList = `xRow ${i % 2 == 0 ? "shade" : ""}`;
+        row.innerHTML = `<div class="hRow"><div class="space"></div>${multNames[m].name}</div>`;
+        for( let d = 1; d < 10; d++ ){
+            let col = document.createElement(`div`);
+            col.classList = `dCol`;
+            let val = `<a style="color: var(--g3)">No</a>`;
+            if( ach.finite[`r${d}`][multNames[m].id] ){ val = `<a style="color: var(--g1)">Yes</a>`; }
+            col.innerHTML = val;
+            row.appendChild( col );
+        }
+        t.appendChild( row );
+        i++;
+    }
+}
+
+function buildInfiniteTable(){
+    let t = document.querySelector(`.achContainer`);
+    for( a in ach.infinite ){
+        if( Object.keys( ach.infinite[a] ).length == 0 ){
+            let row = document.createElement(`div`);
+            row.classList = `infRow`;
+            row.innerHTML = `<div class="infTitle">${aDictionary[a].name}</div>
+            <div class="infComplete">${numDisplay( ach.infinite[a] )}</div>
+            <div class="infBar shade">
+                <div class="infProgress" style="width: ${ a == 'score' ? game.points / Math.pow( 10, ach.infinite[a] + 1 ) * 100 : ach.infinite[a] / ( ach.infinite[a] + 1 ) * 100 }%;"></div>
+                <div class="infOverlay">${aDictionary[a].desc.replace( `#`, numDisplay( ach.infinite[a] + 1 ) )}</div>
+            </div>
+            `;
+            t.appendChild(row);
+        }
+        else if( Object.keys( ach.infinite[a] ).length == 2 ){
+            let row = document.createElement(`div`);
+            row.classList = `infRow`;
+            row.innerHTML = `<div class="infTitle">${aDictionary[`rollsAuto`].name}</div>
+            <div class="infComplete">${numDisplay( ach.infinite[a].auto )}</div>
+            <div class="infBar shade">
+                <div class="infProgress" style="width: ${ game.rolls.auto / Math.pow( 10, ach.infinite.rolls.auto ) * 100 }%;"></div>
+                <div class="infOverlay">${aDictionary[`rollsAuto`].desc.replace(`#`,numDisplay( Math.pow( 10, ach.infinite.rolls.auto ) ) )}</div>
+            </div>`;
+            t.appendChild(row);
+            row = document.createElement(`div`);
+            row.classList = `infRow`;
+            row.innerHTML = `<div class="infTitle">${aDictionary[`rollsManual`].name}</div>
+            <div class="infComplete">${numDisplay( ach.infinite[a].manual )}</div>
+            <div class="infBar shade">
+                <div class="infProgress" style="width: ${ game.rolls.manual / Math.pow( 10, ach.infinite.rolls.manual ) * 100 }%;"></div>
+                <div class="infOverlay">${aDictionary[`rollsManual`].desc.replace(`#`,numDisplay( Math.pow( 10, ach.infinite.rolls.manual ) ) )}</div>
+            </div>`;
+            t.appendChild(row);
+        }
+        else{
+            for( m in ach.infinite[a] ){
+                let row = document.createElement(`div`);
+                let target = ( ach.infinite[a][m] + 1 ) * 50;
+                if( a == `combo` ){ target = ( Math.pow( 10, ach.infinite[a][m] + 1 ) ); }
+                row.classList = `infRow`;
+                row.innerHTML = `<div class="infTitle">${aDictionary[a].name.replace(`?`, multNames.filter( o => { return o.id === m } )[0].name ) }</div>
+                <div class="infComplete">${numDisplay( ach.infinite[a][m] )}</div>
+                <div class="infBar shade">
+                    <div class="infProgress" style="width: ${ ( a == `combo` ? game.combo[m] : game.upgrades[m] ) / target * 100 }%;"></div>
+                    <div class="infOverlay">${aDictionary[a].desc.replace(`?`, multNames.filter( o => { return o.id === m } )[0].name ).replace( `#`, numDisplay( target ) ) }</div>
+                </div>
+                `;
+                t.appendChild(row);
+            }
+        }
+    }
 }
 
 function numDisplay( x ){
@@ -962,7 +1070,7 @@ function loadGame(){
     game.pips = g.pips;
     game.pipsBought = g.pipsBought;
     for( d in game.dice ){
-        for( f in game.dice[d].faces ){ game.dice[d].faces[f] = g.dice[d].faces[f] ;}
+        for( f in game.dice[d].faces ){ game.dice[d].faces[f] = g.dice[d].faces[f];}
         game.dice[d].asc = g.dice[d].asc;
     }
     for( u in Object.keys( game.upgrades ) ){ game.upgrades[Object.keys( game.upgrades )[u]] = g.upgrades[Object.keys( game.upgrades )[u]]; }
@@ -996,64 +1104,24 @@ setInterval(() => { tickDown() }, game.tickTime );
 /*
 TODO
 
-** On achievement of all 63 FINITE achievements, unlock a Completionist bank of achievements to chase (every possible combo of dice and their values ? Start with all rolled arrays already marked off ...)
-
-Achievement UI
-
-Ante pips (even number only) for a chance to gain or lose 50% of them - chance is straight 50/50
-
 Toasties 
 
 IDEAS
 Term limited dice power-ups (animated scrolling rainbow color faces, get some bonus to rolls of that dice)
+
 Zen Mode (hide all UI elements other than the dice until next clicked on)
-Save and Load state...
+
 Loadout (Save and Restore)
 - Destroy on Prestige
 - Destroy on Ascend
 
+** On achievement of all 63 FINITE achievements, unlock a Completionist bank of achievements to chase (every possible combo of dice and their values ? Start with all rolled arrays already marked off ...)
+
+Ante pips (even number only) for a chance to gain or lose 50% of them - chance is straight 50/50
 
 Prestige Perks
-- Every Upgrade rank which isn't involved in the roll resolution adds 0.1% to the multiplier which is involved ?? (~1,500 * 0.1% = +150% or *250%)
-- Unspent, Unplaced Pips help somehow
-- Free Ascend (still scales cost)
-= Vanilla multiplier based on unspent curr ? (in addition to or instead of watermark ?)
+- Unspent, Unplaced Pips help somehow ?
 
 ~ Lucky Face ? Add to one dice to Nx the result when that face lands ?
-
-
-Achievements
-** Function: Each achievement gained:
-** ** HIDDEN    Delays Cost Creep on pip prices by 1
-** ** INFINITE  Reduces Perk costs by 1%
-** ** STANDARD  Speeds up the Animation Timer by 1%
-
-- First of each combo
-- - NeX of each combo (infinite) x10
-- First Asencion
-- - NaX of Ascension (infinite) x2
-- Score of 10 Achieved
-- - Every ^2 of 10 achieved (infinite)
-- Roll On - 1e3 rolls
-- - every e+1 (infinite)
-- Upgrade (each) to 10
-- - Every ^2 of 10 achieved (infinite)
-- Ascended a Die to Rank 2
-- - Every +1 achieved (infinite)
-
-- Regulation Dice (each dice with 1-6)
-- - Natural Yahtzee (achieve five of a kind while regulation)
-- Same same (same pip value on every face of every dice)
-- - Repeats for each unique combo of pips (1 - 9)
-
-
-Hidden
-- Straight...? (3-7, 4-8, 5-9)
-- Fullest House (9,9,9,8,8)
-- Orderly Straight (1,2,3,4,5)
-- Get your house in order (x, y, x, y, x)
-- Five Nines (9,9,9,9,9)
-- What're the odds? (five of a kind with 25 blank faces)
-- Nice, lol (roll a total result of 69) (is this even possible?)
 
 */
