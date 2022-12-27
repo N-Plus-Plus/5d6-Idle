@@ -374,7 +374,7 @@ function showPrestige(){
     if( pg == Infinity ){ pg = 0; }
     let delta = Math.max( 0, pg - game.prestige.watermark );
     let suff = ``;
-    if( delta > 0 ){ suff = ` and +${ numDisplay( delta ) }x to all rolls`.replace(` +1x`, ` 1x ( no benefit )` ).replace( ` +`, game.prestige.watermark == 0 ? ` ` : ` +`); }
+    if( delta > 0 ){ suff = ` and +${ numDisplay( delta ) }x to all rolls`.replace(` +1x`, game.prestige.watermark == 0 ? ` 1x ( no benefit )` : ` +1x` ).replace( ` +`, game.prestige.watermark == 0 ? ` ` : ` +`); }
     document.getElementById(`prestige`).innerHTML = `<div class="button prestige">Prestige</div> to receive ${numDisplay( pg ) } PP${suff}`;
 }
 function updateFooter(){
