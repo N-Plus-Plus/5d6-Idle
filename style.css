@@ -119,7 +119,7 @@ a { color: var(--g1); }
 
 .on{ position: relative; cursor: pointer; }
 
-.sRow{ height: calc( 100% / 3 ); display: flex; height: 100%; position: relative;}
+.sRow{ height: calc( 100% / 1.25 ); display: flex; position: relative; width: 100%;}
 .bounceMe{ width: 100%; display: flex; height: 100%; position: relative; pointer-events: none;}
 .topRow{ flex-direction: column;}
 
@@ -140,10 +140,11 @@ header{ font-family: var(--numeric) }
 footer{ cursor: pointer; font-size: 1.5rem; background-color: var(--g4); color: white; }
 
 main{ display: flex; height: calc( 100vh - 6rem ); }
-section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; width: calc( 100% / 3 ); }
-.middleSection{ min-width: 40rem;}
+section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; min-width: calc( 100% / 3 ); width: 100%; }
+.middleSection{ min-width: 40rem;  }
 .leftSection{ margin-left: 2rem; }
 .rightSection{ margin-right: 2rem; display:flex; justify-content: right; flex-direction: column; align-items: flex-end ;}
+.rightSection.noDisplay{ display: none; }
 
 .bundle{
     display: flex;
@@ -467,6 +468,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     background-image: url(./a/i.png);
     left: 2rem;
 }
+.info.noDisplay,.achievements.noDisplay{ display: none; }
 .achievements{
     background-image: url(./a/trophy.png);
     left: 7rem;

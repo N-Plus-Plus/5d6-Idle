@@ -89,12 +89,13 @@ function tickDown(){
 
 function pressed( e ){
     if( e.key == ` ` ){ manualSpin(); }
-    if( e.key == `1` ){ ascendDie( 0 ); }
-    if( e.key == `2` ){ ascendDie( 1 ); }
-    if( e.key == `3` ){ ascendDie( 2 ); }
-    if( e.key == `4` ){ ascendDie( 3 ); }
-    if( e.key == `5` ){ ascendDie( 4 ); }
-    if( e.key == `p` ){ buyPip(); }
+    else if( e.key == `1` ){ ascendDie( 0 ); }
+    else if( e.key == `2` ){ ascendDie( 1 ); }
+    else if( e.key == `3` ){ ascendDie( 2 ); }
+    else if( e.key == `4` ){ ascendDie( 3 ); }
+    else if( e.key == `5` ){ ascendDie( 4 ); }
+    else if( e.key == `p` ){ buyPip(); }
+    else if( e.key == `z` ){ zen(); }
 }
 
 function buildDice(){
@@ -844,6 +845,20 @@ function sq( n ){
     return Math.pow( n, getPerk( `square` ) + 1 );
 }
 
+function zen(){
+    document.getElementById(`header`).classList.toggle(`noDisplay`);
+    document.getElementById(`footer`).classList.toggle(`noDisplay`);
+    document.querySelector(`.info`).classList.toggle(`noDisplay`);
+    document.querySelector(`.achievements`).classList.toggle(`noDisplay`);
+    document.querySelector(`.leftSection`).classList.toggle(`noDisplay`);
+    document.querySelector(`.rightSection`).classList.toggle(`noDisplay`);
+    document.querySelector(`.topRow`).classList.toggle(`noDisplay`);
+    document.querySelector(`#lastRow`).classList.toggle(`noDisplay`);
+    if( getComputedStyle(document.querySelector(':root') ).getPropertyValue('--face') == `10rem` ){
+        document.querySelector(':root').style.setProperty('--face', '5rem');
+    }
+    else{ document.querySelector(':root').style.setProperty('--face', '10rem'); }
+}
 
 function showModal(){
     document.querySelector(`.modal`).classList.toggle(`noDisplay`);
@@ -1124,5 +1139,6 @@ Prestige Perks
 - Unspent, Unplaced Pips help somehow ?
 
 ~ Lucky Face ? Add to one dice to Nx the result when that face lands ?
+~ Luck Face which provides 1x score, then when rolled again 2x, then 4x
 
 */
