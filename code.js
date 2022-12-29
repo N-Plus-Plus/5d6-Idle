@@ -783,7 +783,9 @@ function autoPips(){
     }
 }
 function autoPrestige(){
-    if( prestigeGains() >= game.prestige.watermark ){ prestige(); }
+    if( game.auto.prestige.on ){
+        if( prestigeGains() >= game.prestige.watermark ){ prestige(); }
+    }
 }
 
 function autoUpgrade(){
