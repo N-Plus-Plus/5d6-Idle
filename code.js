@@ -530,7 +530,7 @@ function prestigeGains(){
     let base = Math.max( 0, Math.floor( Math.pow( Math.log10( Math.max( 1, game.points / ( Math.pow( 10, game.prestige.floor ) ) ) ), 2 ) ) );
     let aMod = Math.pow( 1.01, ach.balance.infinite );
     let bMod = 1;
-    if( ach.hidden.masochist ){ bMod = 1 + Object.keys( game.arrs ).length / 100; }
+    if( ach.hidden.masochist ){ bMod = 1 + Object.keys( game.arrs ).length / 1000; }
     return Math.round( base * aMod * bMod );
 }
 
@@ -1220,7 +1220,7 @@ function buildFiniteTable(){
         addendum.classList = `intrusion`;
         addendum.innerHTML = `<div class="heading">Masochist.</div>
         <div class="deets">I guess you are a completionist, then ... that's fine. However you define fun is fine by me.</div>
-        <div class="deets">You now gain a 1% bonus to PP for every unique combination of face values you roll.</div>
+        <div class="deets">You now gain a 0.1% bonus to PP for every unique combination of face values you roll.</div>
         <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of a possible 100,000 combinations.</div>
         <div class="deets">Good luck with that.</div>`
         t.after( addendum );
@@ -1374,10 +1374,17 @@ If you get the same face value array 100 times in a row
 - Resets to zero on duplicate roll from previously rolled arrays
 
 RISK TAKER
-If your points per roll are more than five OOMs from the Maximum Roll
+If MAX / PPR > 7770 (only get points on a super unlikely roll)
+
+MANUAL DRIVER
+If you hit 10,000 manual rolls
+- Refund any points spent on reducing the auto-roller time
+- Set the time between rolls to zero
+- All rolls now count as Manual AND Automatic for the purposes of achievements
+
 
 IDEAS
-If MAX / PPR > 7770
+
 
 Loadout (Save and Restore)
 - Destroy on Prestige
