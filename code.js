@@ -1329,7 +1329,8 @@ setInterval(() => { tickDown() }, game.tickTime );
 /*
 TODO
 
-Toasties 
+Toasties
+Make the X to close the modal sticky
 
 IDEAS
 Term limited dice power-ups (animated scrolling rainbow color faces, get some bonus to rolls of that dice)
