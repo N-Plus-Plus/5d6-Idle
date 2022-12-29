@@ -1011,6 +1011,11 @@ function showPpr(){
     document.querySelector(`[data-ref="ppm"]`).innerHTML = numDisplay( o.ppr * 60000 / ( ( game.baseTTNR * getPerk( `autoTime` ) ) + getAnimationTime( true ) ) );
     document.querySelector(`[data-ref="min"]`).innerHTML = numDisplay( o.min );
     document.querySelector(`[data-ref="max"]`).innerHTML = numDisplay( o.max );
+    if( ach.hidden.masochist ){
+        let t = document.querySelector(`[data-ref="unique"]`);
+        t.parentElement.classList.remove(`noDisplay`);
+        t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / 100,000`;
+    }
 }
 
 function ppr(){
@@ -1362,17 +1367,21 @@ TODO
 Toasties
 Make the X to close the modal sticky
 
-IDEAS
-Term limited dice power-ups (animated scrolling rainbow color faces, get some bonus to rolls of that dice)
+BORING
+If you get the same face value array 100 times in a row
+- Gain a slow-growing multiplier to points which grows every roll until a duplicate roll occurs
+- - Duplicate defined here as the same array of scorable values, not the unique face values of dice
+- Resets to zero on duplicate roll from previously rolled arrays
 
-Zen Mode (hide all UI elements other than the dice until next clicked on)
+RISK TAKER
+If your points per roll are more than five OOMs from the Maximum Roll
+
+IDEAS
+If MAX / PPR > 7770
 
 Loadout (Save and Restore)
 - Destroy on Prestige
 - Destroy on Ascend
-
-** On achievement of all 63 FINITE achievements, unlock a Completionist bank of achievements to chase (every possible combo of dice and their values ? Start with all rolled arrays already marked off ...)
-MASOCHIST After Standard is complete, get a boost for every unique combination (in sequence) of dice rolled. Possible combinations (0 - 9) = 10^4 = 100,000
 
 Ante pips (even number only) for a chance to gain or lose 50% of them - chance is straight 50/50
 
@@ -1383,19 +1392,6 @@ Prestige Perks
 ~ Luck Face which provides 1x score, then when rolled again 2x, then 4x
 
 
-SECRETS
-- Reach 63 / 63 FINITE achievements
-- - Unlock Masochist achievements - every unique roll (sequence matters) gives you +1% to PP earned (up to a theoretical 100,000% boost)
-- Reach ach.infinite.minAscension 7
-- - Gain the ability to automate ascension (check box on the buttons that will upgrade them when it's affordable)
-- Buy N lifetime pips
-- - Gain the ability to automate pip buy when it's affordable
-- Lifetime N Upgrades
-- - Gain the ability to automade Upgrade purchases
-? Prestige N times
-? ? Gain the ability to automate Prestige when you're at or above your previous best (doesn't help if you can't auto-place pips)
-? Place N lifetime pips
-? ? Unlock a Loadout which will be filled up to as close as possible after prestige ?
 
 */
 
