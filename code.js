@@ -636,7 +636,7 @@ var game = {
         ascend: { unlocked: false, countDown: 1e2 }
         , upgrades: { unlocked: false, countDown: 1e4, state: { five: false, four: false, three: false, two: false, twoPair: false, fullHouse: false, straight: false } }
         , pips: { unlocked: false, countDown: 1e3, on: false }
-        , loadOut: { unlocked: false, countDown: 1e4, setup: [ [], [], [], [], [] ], on: false }
+        , loadOut: { unlocked: false, countDown: 2.5e3, setup: [ [], [], [], [], [] ], on: false }
         , prestige: { unlocked: false, countDown: 50, on: false }
     }
 }
@@ -750,7 +750,7 @@ var ach = {
 let aDictionary = {
     ascension: { name: `Ascension`, desc: `Ascend a die to rank #`, comp: `Ascended a die to rank # for the first time!` },
     minAscension: { name: `Ascend-All`, desc: `Ascend all dice to rank #`, comp: `Ascended all dice to rank # for the first time!` },
-    score: { name: `High Score`, desc: `Reach a score of 10 to the power of #`, comp: `Reachd a score of 10 x <sup>#</sup> for the first time!` },
+    score: { name: `High Score`, desc: `Reach a score of 1.000 x 10<sup style="margin-bottom: 0.6rem;">#</sup>`, comp: `Reachd a score of 10 x <sup>#</sup> for the first time!` },
     rollsAuto: { name: `Auto Roller`, desc: `Let the dice roll # times automatically`, comp: `# automatic rolls!` },
     rollsManual: { name: `Hands On`, desc: `Roll the dice # times manually`, comp: `# manual rolls!` },
     upgrade: { name: `Upgrade ?`, desc: `Upgrade ? Multiplier # times`, comp: `? upgraded # times!` },
@@ -1002,6 +1002,7 @@ function spin( d ){
 }
 
 function manualSpin(){
+    if( game.volatile.pause ){ return }
     if( game.volatile.ttnr > ( game.baseTTNR * getPerk( `autoTime` ) ) ){ return }
     else{ spinAll(); game.rolls.manual++; checkAchieve( `infinite`, `rolls`, game.rolls.manual, `manual` ); }
 }
@@ -1015,6 +1016,9 @@ function showPpr(){
         let t = document.querySelector(`[data-ref="unique"]`);
         t.parentElement.classList.remove(`noDisplay`);
         t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / 100,000`;
+        let u = document.querySelector(`[data-ref="uSet"]`);
+        u.parentElement.classList.remove(`noDisplay`);
+        u.innerHTML = numDisplay( o.got / 7776 * 100 ) + `%`;
     }
 }
 
@@ -1023,6 +1027,7 @@ function ppr(){
     let max = 0;
     let min = Infinity;
     let ppp = Math.max( 1, Math.floor( Math.abs( Math.log10( game.prestige.curr ) ) == Infinity ? 1 : Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    let got = 0;
     if( ppp == Infinity ){ ppp = 1; }
     for( let a = 0; a < 6; a++ ){
         for( let b = 0; b < 6; b++ ){
@@ -1046,12 +1051,13 @@ function ppr(){
                         score += result;
                         if( result < min ){ min = result; }
                         if( result > max ){ max = result; }
+                        if( game.arrs[`r${aa}${bb}${cc}${dd}${ee}`] !== undefined ){ got++; }
                     }
                 }
             }
         }
     }
-    return { cumTotal: score, ppr: Math.floor( score / 7776 ), min: min, max: max }
+    return { cumTotal: score, ppr: Math.floor( score / 7776 ), min: min, max: max, got: got }
 }
 
 function sq( n ){
@@ -1220,7 +1226,7 @@ function buildFiniteTable(){
         addendum.classList = `intrusion`;
         addendum.innerHTML = `<div class="heading">Masochist.</div>
         <div class="deets">I guess you are a completionist, then ... that's fine. However you define fun is fine by me.</div>
-        <div class="deets">You now gain a 0.1% bonus to PP for every unique combination of face values you roll.</div>
+        <div class="deets">You now gain a 0.1% bonus to PP for every unique combination of face values you roll (order matters).</div>
         <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of a possible 100,000 combinations.</div>
         <div class="deets">Good luck with that.</div>`
         t.after( addendum );
