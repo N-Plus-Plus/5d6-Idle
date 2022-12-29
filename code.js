@@ -1212,9 +1212,11 @@ function buildFiniteTable(){
     }
     if( ach.hidden.masochist ){
         let addendum = document.createElement(`div`);
-        
-        addendum.innerHTML = `<div class="deets">I guess you are a completionist, then ... that's fine. You now gain a 1% bonus to PP for every unique combination of face values you roll.</div>
-        <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of 100,000.</div>
+        addendum.classList = `intrusion`;
+        addendum.innerHTML = `<div class="heading">Masochist.</div>
+        <div class="deets">I guess you are a completionist, then ... that's fine. However you define fun is fine by me.</div>
+        <div class="deets">You now gain a 1% bonus to PP for every unique combination of face values you roll.</div>
+        <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of a possible 100,000 combinations.</div>
         <div class="deets">Good luck with that.</div>`
         t.after( addendum );
     }
