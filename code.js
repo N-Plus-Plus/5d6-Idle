@@ -529,7 +529,9 @@ function pipPrice(){
 function prestigeGains(){
     let base = Math.max( 0, Math.floor( Math.pow( Math.log10( Math.max( 1, game.points / ( Math.pow( 10, game.prestige.floor ) ) ) ), 2 ) ) );
     let aMod = Math.pow( 1.01, ach.balance.infinite );
-    return Math.round( base * aMod );
+    let bMod = 1;
+    if( ach.hidden.masochist ){ bMod = 1 + Object.keys( game.arrs ).length / 100; }
+    return Math.round( base * aMod * bMod );
 }
 
 function perkPrice( p ){
@@ -684,6 +686,17 @@ function checkFinite( m, arr ){
             gainAchievement( `finite`, `die value ${arr[i]}`, multNames.filter( o => { return o.id === m } )[0].name );
         }
     }
+    if( !game.volatile.masochist ){
+        let masochist = true;
+        for( a in ach.finite ){
+            for( b in ach.finite[a] ){
+                if( !ach.finite[a][b] ){ masochist = false; break; }
+            }
+        }
+        if( masochist ){
+            ach.hidden.masochist = true;
+        }
+    }
     showPpr();
 }
 
@@ -730,7 +743,7 @@ var ach = {
         r8: { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false },
         r9: { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false },
     }
-    , hidden: {}
+    , hidden: { masochist: false }
     , balance: { infinite: 0, finite: 0, hidden: 0 }
 }
 
@@ -1318,6 +1331,9 @@ function loadGame(){
             }
         }
         else{ ach.infinite[i] = a.infinite[i]; };
+    }
+    for( i in a.hidden ){
+        ach.hidden = a.hidden;
     }
     ach.finite = a.finite;
     // Data Fixing
