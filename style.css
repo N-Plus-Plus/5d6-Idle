@@ -59,6 +59,7 @@ body{
 i { margin: 0 0.5rem 0 0.3rem; }
 u { margin: 0 0.5rem; }
 a { color: var(--g1); }
+br { margin-bottom: 1rem; }
 
 .modal{
     width: 100%;
@@ -603,4 +604,8 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     left: calc( 50% - 0.75rem / 2 );
     top: calc( 50% - 0.75rem / 2 );
     pointer-events: none;
+}
+
+.intrusion{
+    margin-bottom: 1rem;
 }
