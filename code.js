@@ -527,8 +527,7 @@ function pipPrice(){
 }
 
 function prestigeGains(){
-    let base = Math.max( 0, Math.floor( Math.pow( Math.log10( game.points / ( Math.pow( 10, game.prestige.floor ) ) ), 2 ) ) );
-    // let aMod = Math.pow( 1 - ( 0.01 ), ach.balance.infinite );
+    let base = Math.max( 0, Math.floor( Math.pow( Math.log10( Math.max( 1, game.points / ( Math.pow( 10, game.prestige.floor ) ) ) ), 2 ) ) );
     let aMod = Math.pow( 1.01, ach.balance.infinite );
     return Math.round( base * aMod );
 }
@@ -921,7 +920,7 @@ function resolveRoll( res ){
     checkAchieve( `infinite`, `combo`, game.combo[aa[1]], aa[1] );
     checkFinite( aa[1], aa[2] )
     let pres = Math.max( 1, game.prestige.watermark );
-    let ppp = Math.max( 1, Math.floor( Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    let ppp = Math.max( 1, Math.floor( Math.log10( ( isNaN( game.prestige.curr ) ? 0 : game.prestige.curr ) + 1 ) ) * getPerk(`spares`) );
     if( isNaN( ppp ) ){ ppp = 0; }
     game.points += p * o * m * Math.pow( 10, b ) * ( pres * Math.max( 1, ppp ) );
     game.volatile.lastRoll = now();
@@ -1003,7 +1002,8 @@ function ppr(){
     let score = 0;
     let max = 0;
     let min = Infinity;
-    let ppp = Math.max( 1, Math.floor( Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    let ppp = Math.max( 1, Math.floor( Math.abs( Math.log10( game.prestige.curr ) ) == Infinity ? 1 : Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    if( ppp == Infinity ){ ppp = 1; }
     for( let a = 0; a < 6; a++ ){
         for( let b = 0; b < 6; b++ ){
             for( let c = 0; c < 6; c++ ){
