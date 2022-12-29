@@ -233,11 +233,15 @@ function buyPip(){
 }
 
 function buyAllPips(){
+    let n = 0;
     while( game.points >= pipPrice() ){
         game.points -= pipPrice();
         game.pips++;
         game.pipsBought++;
+        n++;
     }
+    if( game.auto.pips.countDown > 0 ){ game.auto.pips.countDown -= Math.min( n, game.auto.pips.countDown ); }
+    else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
     updateHeader();
 }
@@ -255,11 +259,15 @@ function buyUpgrade( type ){
 }
 
 function buyAllUpgrades( type ){
+    let n = 0;
     while( game.points >= upgradePrice( type ) ){
         game.points -= upgradePrice( type );
         game.upgrades[type]++;
+        n++;
         checkAchieve( `infinite`, `upgrade`, game.upgrades[type], type );
     }
+    if( game.auto.upgrades.countDown > 0 ){ game.auto.upgrades.countDown -= Math.min( n, game.auto.upgrades.countDown ); }
+    else if( !game.auto.upgrades.unlocked ){ unlock( `auto`, `upgrades` ); }
     updatePrices();
     updateHeader();
     showPpr();
