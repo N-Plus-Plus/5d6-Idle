@@ -24,6 +24,7 @@ function onLoad(){
         document.querySelectorAll(`.banner`)[1].innerHTML = ``;
     }
     resize();
+    refreshLockedUI();
 }
 
 function clicked( e ){
@@ -53,6 +54,10 @@ function clicked( e ){
     else if( c.contains(`hardReset`) ){ hardReset(); }
     else if( c.contains(`softReset`) ){ softReset(); }
     else if( c.contains(`achievements`) ){ achieveModal(); }
+    else if( c.contains(`ascendAuto`) ){ toggleAutoAscend( t.getAttribute(`data-ref`) ); }
+    else if( c.contains(`buyPipAuto`) ){ toggleAutoPips(); }
+    else if( c.contains(`upgradeAuto`) ){ toggleAutoUpgrade( t.getAttribute(`data-ref`) ); }
+    else if( c.contains(`prestigeAuto`) ){ toggleAutoPrestige(); }
 }
 
 function mouseDown( e ){
@@ -78,8 +83,10 @@ function resize(){
 }
 
 function tickDown(){
-    game.volatile.ttnr -= game.tickTime;
-    document.querySelector(`.autoTick`).style.width = `${Math.min( 1, game.volatile.ttnr / ( ( game.baseTTNR * getPerk( `autoTime` ) ) ) ) * 100 + "%"}`;
+    if( !game.volatile.pause ){
+        game.volatile.ttnr -= game.tickTime;
+        document.querySelector(`.autoTick`).style.width = `${Math.min( 1, game.volatile.ttnr / ( ( game.baseTTNR * getPerk( `autoTime` ) ) ) ) * 100 + "%"}`;
+    }
     if( game.volatile.ttnr <= 0 ){ spinAll(); game.rolls.auto++; checkAchieve( `infinite`, `rolls`, game.rolls.auto, `auto` ); }
     if( game.volatile.mouseDown ){
         if( game.volatile.mouseCount < 10 ){ game.volatile.mouseCount++; }
@@ -96,6 +103,7 @@ function pressed( e ){
     else if( e.key == `5` ){ ascendDie( 4 ); }
     else if( e.key == `p` ){ buyPip(); }
     else if( e.key == `z` ){ zen(); }
+    else if( e.key == `Escape` ){ pause(); }
 }
 
 function buildDice(){
@@ -203,6 +211,10 @@ function modPips( d, f, up ){
         game.dice[d].faces[f]--;
         document.querySelectorAll(`.banner`)[1].innerHTML = ``;
     }
+    if( up ){
+        if( game.auto.loadOut.countDown > 0 ){ game.auto.loadOut.countDown--; }
+        else if( !game.auto.loadOut.unlocked ){ unlock( `auto`, `loadOut` ); }
+    }
     showUnfolded();
     updateFaces( d );
     updateHeader();
@@ -214,12 +226,14 @@ function buyPip(){
     game.points -= pipPrice();
     game.pips++;
     game.pipsBought++;
+    if( game.auto.pips.countDown > 0 ){ game.auto.pips.countDown--; }
+    else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
     updateHeader();
 }
 
 function buyAllPips(){
-    while( game.points >= pipPrice() ){        
+    while( game.points >= pipPrice() ){
         game.points -= pipPrice();
         game.pips++;
         game.pipsBought++;
@@ -236,6 +250,8 @@ function buyUpgrade( type ){
     updateHeader();
     showPpr();
     checkAchieve( `infinite`, `upgrade`, game.upgrades[type], type );
+    if( game.auto.upgrades.countDown > 0 ){ game.auto.upgrades.countDown--; }
+    else if( !game.auto.upgrades.unlocked ){ unlock( `auto`, `upgrades` ); }
 }
 
 function buyAllUpgrades( type ){
@@ -271,6 +287,100 @@ function ascendDie( d ){
     let min = Infinity;
     for( d in game.dice ){ if( game.dice[d].asc < min ){ min = game.dice[d].asc; } }
     checkAchieve( `infinite`, `minAscension`, min );
+    if( game.auto.ascend.countDown > 0 ){ game.auto.ascend.countDown--; }
+    else if( !game.auto.ascend.unlocked ){ unlock( `auto`, `ascend` ); }
+}
+
+function unlock( category, type ){
+    game[category][type].unlocked = true;
+    refreshLockedUI();
+}
+
+function refreshLockedUI(){
+    if( game.auto.ascend.unlocked == true ){
+        let b = document.querySelectorAll(`.ascend`);
+        for( let i = 0; i < b.length; i++ ){
+            let ref = b[i].getAttribute( `data-ascref` );
+            b[i].innerHTML = `Ascend`;
+            if( b[i].children.length !== 0 ){}
+            else{
+                let tb = document.createElement(`div`);
+                tb.classList = `tickBox ascendAuto`;
+                tb.setAttribute(`data-ref`, ref );
+                b[i].appendChild(tb);
+            }
+            if( game.dice[ref].auto ){
+                let t = document.createElement(`div`);
+                t.classList = `ticked`;
+                b[i].children[0].appendChild(t);
+            }
+        }
+    }
+    if( game.auto.pips.unlocked == true ){
+        let b = document.querySelector(`.buyPip`);
+        b.innerHTML = `Buy a pip`;
+        let tb = document.createElement(`div`);
+        tb.classList = `tickBox buyPipAuto`;
+        b.appendChild(tb);
+        if( game.auto.pips.on ){
+            let t = document.createElement(`div`);
+            t.classList = `ticked`;
+            b.children[0].appendChild(t);
+        }
+    }
+    if( game.auto.prestige.unlocked == true ){
+        let b = document.querySelector(`.prestige`);
+        b.innerHTML = `Prestige`;
+        let tb = document.createElement(`div`);
+        tb.classList = `tickBox prestigeAuto`;
+        b.appendChild(tb);
+        if( game.auto.prestige.on ){
+            let t = document.createElement(`div`);
+            t.classList = `ticked`;
+            b.children[0].appendChild(t);
+        }
+    }
+    if( game.auto.upgrades.unlocked == true ){
+        let b = document.querySelectorAll(`.upgrade`);
+        for( let i = 0; i < b.length; i++ ){
+            let ref = b[i].getAttribute( `data-ref` );
+            b[i].innerHTML = `Upgrade`;
+            if( b[i].children.length !== 0 ){}
+            else{
+                let tb = document.createElement(`div`);
+                tb.classList = `tickBox upgradeAuto`;
+                tb.setAttribute(`data-ref`, ref );
+                b[i].appendChild(tb);
+            }
+            if( game.auto.upgrades.state[ref] ){
+                let t = document.createElement(`div`);
+                t.classList = `ticked`;
+                b[i].children[0].appendChild(t);
+            }
+        }
+    }
+    if( game.auto.loadOut.unlocked == true ){}
+}
+
+function toggleAutoAscend( d ){
+    if( game.dice[d].auto ){ game.dice[d].auto = false; }
+    else{ game.dice[d].auto = true; }
+    refreshLockedUI();
+}
+function toggleAutoPips(){
+    if( game.auto.pips.on ){ game.auto.pips.on = false; }
+    else{ game.auto.pips.on = true; }
+    refreshLockedUI();
+}
+function toggleAutoUpgrade( u ){
+    if( game.auto.upgrades.state[u] ){ game.auto.upgrades.state[u] = false; }
+    else{ game.auto.upgrades.state[u] = true; }
+    refreshLockedUI();
+}
+function toggleAutoPrestige(){
+    if( game.auto.prestige.on ){ game.auto.prestige.on = false; }
+    else{ game.auto.prestige.on = true; }
+    refreshLockedUI();
 }
 
 function getAscCost( d ){
@@ -410,8 +520,9 @@ function pipPrice(){
 
 function prestigeGains(){
     let base = Math.max( 0, Math.floor( Math.pow( Math.log10( game.points / ( Math.pow( 10, game.prestige.floor ) ) ), 2 ) ) );
-    let aMod = Math.pow( 1 - ( 0.01 ), ach.balance.infinite );
-    return Math.round( base / aMod );
+    // let aMod = Math.pow( 1 - ( 0.01 ), ach.balance.infinite );
+    let aMod = Math.pow( 1.01, ach.balance.infinite );
+    return Math.round( base * aMod );
 }
 
 function perkPrice( p ){
@@ -458,6 +569,8 @@ function prestige(){
     showPpr();
     conditionalShow();
     updateAscCosts();
+    if( game.auto.prestige.countDown > 0 ){ game.auto.prestige.countDown--; }
+    else if( !game.auto.prestige.unlocked ){ unlock( `auto`, `prestige` ); }
     localStorage.setItem( `backup-game` , JSON.stringify( game ) );
     localStorage.setItem( `backup-ach` , JSON.stringify( ach ) );
 }
@@ -505,10 +618,18 @@ var game = {
         , mouseDown: false
         , mouseCount: null
         , mouseTarget: null
+        , pause: false
     }
     , animationTime: 2000
     , settleTime: 350
     , tickTime: 25
+    , auto: {
+        ascend: { unlocked: false, countDown: 1e2 }
+        , upgrades: { unlocked: false, countDown: 1e4, state: { five: false, four: false, three: false, two: false, twoPair: false, fullHouse: false, straight: false } }
+        , pips: { unlocked: false, countDown: 1e3, on: false }
+        , loadOut: { unlocked: false, countDown: 1e4, setup: [ [], [], [], [], [] ], on: false }
+        , prestige: { unlocked: false, countDown: 50, on: false }
+    }
 }
 
 function checkAchieve( group, type, value, subtype ){
@@ -628,10 +749,67 @@ let aDictionary = {
     // Prestige without ascending
 }
 
+function autoAscend(){
+    let proceed = false;
+    for( d in game.dice ){
+        if( game.dice[d].auto == undefined ){ game.dice[d].auto = false; }
+        if( game.dice[d].auto ){ proceed = true; }
+    }
+    if( proceed ){
+        let changed = true;
+        while( changed ){
+            let min = Infinity;
+            let choice = null;
+            for( d in game.dice ){
+                if( !game.dice[d].auto ){}
+                else if( game.dice[d].asc < min ){ min = game.dice[d].asc; choice = d; }
+            }
+            if( game.pips >= getAscCost( choice ) ){ ascendDie( choice ); }
+            else{ changed = false; }
+        }
+    }
+}
+
+function autoPips(){
+    if( game.auto.pips.on ){
+        if( game.points >= pipPrice() ){ buyAllPips(); }
+    }
+}
+function autoPrestige(){
+    if( prestigeGains() >= game.prestige.watermark ){ prestige(); }
+}
+
+function autoUpgrade(){
+    let changed = true;
+    let n = 0;
+    while( changed ){
+        let min = Infinity;
+        let choice = null;
+        for( u in multNames ){
+            let id = multNames[u].id;
+            if( game.auto.upgrades.state[id] ){
+                let p = upgradePrice( id );
+                if( p < min ){ min = p; choice = id; }
+            }
+        }
+        if( game.points >= min ){
+            game.points -= min;
+            game.upgrades[choice]++;
+            n++;
+        }
+        else{ changed = false; }
+    }
+    updatePrices();
+    updateHeader();
+    showPpr();
+    for( u in multNames ){
+        checkAchieve( `infinite`, `upgrade`, game.upgrades[multNames[u].id], multNames[u].id );
+    }
+}
+
 function getPerk( p ){
     if( game.prestige.perks[p].type == `multiply` ){ return game.prestige.perks[p].impact * game.prestige.perks[p].amt; }
     else if( game.prestige.perks[p].type == `power` ){ return Math.pow( game.prestige.perks[p].impact, game.prestige.perks[p].amt ); }
-    
 }
 
 function parseMultiplier( arr ){
@@ -699,7 +877,7 @@ function spinAll(){
 }
 
 function getAnimationTime( both ){
-    let mod = 1 - ( 0.005 * ach.balance.finite );
+    let mod = 1 - ( 0.0075 * ach.balance.finite );
     if( both == null ){
         return Math.floor( game.settleTime * mod )
     }
@@ -739,9 +917,14 @@ function resolveRoll( res ){
     if( isNaN( ppp ) ){ ppp = 0; }
     game.points += p * o * m * Math.pow( 10, b ) * ( pres * Math.max( 1, ppp ) );
     game.volatile.lastRoll = now();
+    autoAscend();
+    autoUpgrade();
+    autoPips();
+    autoPrestige();
     updateHeader();
     postResults( p, o, m, b, pres, ppp );
     checkAchieve( `infinite`, `score`, game.points );
+    refreshLockedUI()
     saveState();
 }
 
@@ -860,6 +1043,11 @@ function zen(){
     else{ document.querySelector(':root').style.setProperty('--face', '10rem'); }
 }
 
+function pause(){
+    if( game.volatile.pause ){ game.volatile.pause = false; }
+    else{ game.volatile.pause = true; }
+}
+
 function showModal(){
     document.querySelector(`.modal`).classList.toggle(`noDisplay`);
 }
@@ -924,6 +1112,14 @@ function infoModal(){
     <div class="key">1 - 5</div>
     <div class="descriptor">Ascend the corresponding die once</div>
     </div>
+    <div class="bundle">
+    <div class="key">z</div>
+    <div class="descriptor">Zen Mode (hides all UI but the dice)</div>
+    </div>
+    <div class="bundle">
+    <div class="key">[Esc]</div>
+    <div class="descriptor">Pause the game (in case you want to for some reason)</div>
+    </div>
     <div class="deets"></div>
     <div class="deets"><b>Tips & General Advice</b></div>
     <div class="deets">Achievements matter!</div>
@@ -946,7 +1142,7 @@ function achieveModal(){
     let t = document.querySelector(`.modalContainer`);
     t.innerHTML = `<div class="close">x</div>
     <div class="heading firstH">Finite Achievements</div>
-    <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.5% (static), currently -${numDisplay( ( 0.5 * ach.balance.finite ) )}%</div>
+    <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.75% (additive), currently -${numDisplay( ( 0.75 * ach.balance.finite ) )}%</div>
     <div class="achTable">
         <div class="hRow">
             <div class="hCol"><div class="space"></div>Combo</div>
@@ -962,7 +1158,7 @@ function achieveModal(){
         </div>
     </div>
     <div class="heading">Infinite Achievements</div>
-    <div class="deets">Every rank of each achievement below improves your Prestige Points (PP) rewards by 1% (diminishing), currently +${numDisplay( ( 1 - Math.pow( 1 - ( 0.01 ), ach.balance.infinite ) ) * 100 )}%</div>
+    <div class="deets">Every rank of each achievement below improves your Prestige Points (PP) rewards by 1% (compounding), currently +${numDisplay( ( Math.pow( 1.01, ach.balance.infinite ) - 1 ) * 100 )}%</div>
     <div class="achContainer"></div>
     <div class="heading">Hidden Achievements</div>
     <div class="deets">...shh</div>
@@ -1112,6 +1308,11 @@ function loadGame(){
         else{ ach.infinite[i] = a.infinite[i]; };
     }
     ach.finite = a.finite;
+    // Data Fixing
+    if( g.auto !== undefined ){
+        for( a in g.auto ){ game.auto[a] = g.auto[a]; }
+        for( d in game.dice ){ game.dice[d].auto = g.dice[d].auto; }
+    }
     rebalanceAchievement();
 }
 
@@ -1132,6 +1333,7 @@ Loadout (Save and Restore)
 - Destroy on Ascend
 
 ** On achievement of all 63 FINITE achievements, unlock a Completionist bank of achievements to chase (every possible combo of dice and their values ? Start with all rolled arrays already marked off ...)
+MASOCHIST After Standard is complete, get a boost for every unique combination (in sequence) of dice rolled. Possible combinations (0 - 9) = 10^4 = 100,000
 
 Ante pips (even number only) for a chance to gain or lose 50% of them - chance is straight 50/50
 
@@ -1141,4 +1343,20 @@ Prestige Perks
 ~ Lucky Face ? Add to one dice to Nx the result when that face lands ?
 ~ Luck Face which provides 1x score, then when rolled again 2x, then 4x
 
+
+SECRETS
+- Reach 63 / 63 FINITE achievements
+- - Unlock Masochist achievements - every unique roll (sequence matters) gives you +1% to PP earned (up to a theoretical 100,000% boost)
+- Reach ach.infinite.minAscension 7
+- - Gain the ability to automate ascension (check box on the buttons that will upgrade them when it's affordable)
+- Buy N lifetime pips
+- - Gain the ability to automate pip buy when it's affordable
+- Lifetime N Upgrades
+- - Gain the ability to automade Upgrade purchases
+? Prestige N times
+? ? Gain the ability to automate Prestige when you're at or above your previous best (doesn't help if you can't auto-place pips)
+? Place N lifetime pips
+? ? Unlock a Loadout which will be filled up to as close as possible after prestige ?
+
 */
+
