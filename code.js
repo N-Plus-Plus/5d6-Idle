@@ -1210,6 +1210,14 @@ function buildFiniteTable(){
         t.appendChild( row );
         i++;
     }
+    if( ach.hidden.masochist ){
+        let addendum = document.createElement(`div`);
+        
+        addendum.innerHTML = `<div class="deets">I guess you are a completionist, then ... that's fine. You now gain a 1% bonus to PP for every unique combination of face values you roll.</div>
+        <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of 100,000.</div>
+        <div class="deets">Good luck with that.</div>`
+        t.after( addendum );
+    }
 }
 
 function buildInfiniteTable(){
