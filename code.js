@@ -937,6 +937,7 @@ function resolveRoll( res ){
 }
 
 function postResults( p, o, m, b, pres, ppp ){
+    if( ppp == undefined ){ ppp = 1 }
     let t = document.getElementById(`results`);
     if( t.children.length > 0 ){ t.lastChild.remove(); }
     while( t.children.length > 9 ){ t.firstChild.remove(); }
@@ -944,7 +945,7 @@ function postResults( p, o, m, b, pres, ppp ){
     n.classList = `resultRow`;
     n.innerHTML = ``;
     if( game.prestige.watermark > 0 ){ n.innerHTML += `${numDisplay( pres )}x `}
-    n.innerHTML += `( ${ numDisplay( p ) } ) x [ ${ numDisplay( o ) } ] x { ${ numDisplay( m ) } } x 10<sup>${ numDisplay( b )}</sup>${ ppp > 0 ? ' x ' + numDisplay( ppp ) : '' } = <a class="emph">${ numDisplay( p * o * m * pres * Math.pow( 10, b ) ) }</a>`;
+    n.innerHTML += `( ${ numDisplay( p ) } ) x [ ${ numDisplay( o ) } ] x { ${ numDisplay( m ) } } x 10<sup>${ numDisplay( b )}</sup>${ ppp > 0 ? ' x ' + numDisplay( ppp ) : '' } = <a class="emph">${ numDisplay( p * o * m * pres * Math.pow( 10, b ) * ppp ) }</a>`;
     t.appendChild( n );
     let h = document.createElement(`div`);
     h.classList = `rHeading`;
@@ -1002,6 +1003,7 @@ function ppr(){
     let score = 0;
     let max = 0;
     let min = Infinity;
+    let ppp = Math.max( 1, Math.floor( Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
     for( let a = 0; a < 6; a++ ){
         for( let b = 0; b < 6; b++ ){
             for( let c = 0; c < 6; c++ ){
@@ -1020,7 +1022,7 @@ function ppr(){
                         if( dd !== 0 ){ o *= dd * Math.pow( game.ascMod, game.dice[3].asc ); }
                         if( ee !== 0 ){ o *= ee * Math.pow( game.ascMod, game.dice[4].asc ); }
                         let pres = Math.max( 1, game.prestige.watermark );
-                        let result = ( sq(aa) + sq(bb) + sq(cc) + sq(dd) + sq(ee) ) * o * m * pres ;
+                        let result = ( sq(aa) + sq(bb) + sq(cc) + sq(dd) + sq(ee) ) * o * m * pres * ppp;
                         score += result;
                         if( result < min ){ min = result; }
                         if( result > max ){ max = result; }
