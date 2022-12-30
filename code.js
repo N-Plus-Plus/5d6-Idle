@@ -92,9 +92,10 @@ function tickDown(){
         if( game.volatile.mouseCount < 10 ){ game.volatile.mouseCount++; }
         else{ clicked( game.volatile.mouseTarget ); }
     }
-    if( game.volatile.updatePpr ){ showPpr(); }
-    if( game.volatile.updateHeader ){ updateHeader(); }
-    if( game.volatile.updateUpgrades ){ updatePrices(); }
+    if( game.volatile.updatePpr ){ showPpr(); game.volatile.updatePpr = false; }
+    if( game.volatile.updateHeader ){ updateHeader(); game.volatile.updateHeader = false; }
+    if( game.volatile.updateUpgrades ){ updatePrices(); game.volatile.updateUpgrades = false; }
+    if( game.volatile.updateLockedUI ){ refreshLockedUI(); game.volatile.updateLockedUI = false; }
 }
 
 function pressed( e ){
@@ -304,7 +305,7 @@ function ascendDie( d ){
 
 function unlock( category, type ){
     game[category][type].unlocked = true;
-    refreshLockedUI();
+    game.volatile.updateLockedUI = true;
 }
 
 function refreshLockedUI(){
@@ -376,22 +377,22 @@ function refreshLockedUI(){
 function toggleAutoAscend( d ){
     if( game.dice[d].auto ){ game.dice[d].auto = false; }
     else{ game.dice[d].auto = true; }
-    refreshLockedUI();
+    game.volatile.updateLockedUI = true;
 }
 function toggleAutoPips(){
     if( game.auto.pips.on ){ game.auto.pips.on = false; }
     else{ game.auto.pips.on = true; }
-    refreshLockedUI();
+    game.volatile.updateLockedUI = true;
 }
 function toggleAutoUpgrade( u ){
     if( game.auto.upgrades.state[u] ){ game.auto.upgrades.state[u] = false; }
     else{ game.auto.upgrades.state[u] = true; }
-    refreshLockedUI();
+    game.volatile.updateLockedUI = true;
 }
 function toggleAutoPrestige(){
     if( game.auto.prestige.on ){ game.auto.prestige.on = false; }
     else{ game.auto.prestige.on = true; }
-    refreshLockedUI();
+    game.volatile.updateLockedUI = true;
 }
 
 function getAscCost( d ){
@@ -634,6 +635,7 @@ var game = {
         , updatePpr: false
         , updateHeader: false
         , updateUpgrades: false
+        , updateLockedUI: false
     }
     , animationTime: 2000
     , settleTime: 350
@@ -943,7 +945,7 @@ function resolveRoll( res ){
     game.volatile.updateHeader = true;
     postResults( p, o, m, b, pres, ppp );
     checkAchieve( `infinite`, `score`, game.points );
-    refreshLockedUI()
+    game.volatile.updateLockedUI = true;
     saveState();
 }
 
