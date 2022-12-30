@@ -92,6 +92,9 @@ function tickDown(){
         if( game.volatile.mouseCount < 10 ){ game.volatile.mouseCount++; }
         else{ clicked( game.volatile.mouseTarget ); }
     }
+    if( game.volatile.updatePpr ){ showPpr(); }
+    if( game.volatile.updateHeader ){ updateHeader(); }
+    if( game.volatile.updateUpgrades ){ updatePrices(); }
 }
 
 function pressed( e ){
@@ -217,8 +220,8 @@ function modPips( d, f, up ){
     }
     showUnfolded();
     updateFaces( d );
-    updateHeader();
-    showPpr();
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
 }
 
 function buyPip(){
@@ -229,7 +232,7 @@ function buyPip(){
     if( game.auto.pips.countDown > 0 ){ game.auto.pips.countDown--; }
     else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
-    updateHeader();
+    game.volatile.updateHeader = true;
 }
 
 function buyAllPips(){
@@ -243,16 +246,16 @@ function buyAllPips(){
     if( game.auto.pips.countDown > 0 ){ game.auto.pips.countDown -= Math.min( n, game.auto.pips.countDown ); }
     else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
-    updateHeader();
+    game.volatile.updateHeader = true;
 }
 
 function buyUpgrade( type ){
     if( game.points < upgradePrice( type ) ){ return }
     game.points -= upgradePrice( type );
     game.upgrades[type]++;
-    updatePrices();
-    updateHeader();
-    showPpr();
+    game.volatile.updateUpgrades = true;
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
     checkAchieve( `infinite`, `upgrade`, game.upgrades[type], type );
     if( game.auto.upgrades.countDown > 0 ){ game.auto.upgrades.countDown--; }
     else if( !game.auto.upgrades.unlocked ){ unlock( `auto`, `upgrades` ); }
@@ -268,9 +271,9 @@ function buyAllUpgrades( type ){
     }
     if( game.auto.upgrades.countDown > 0 ){ game.auto.upgrades.countDown -= Math.min( n, game.auto.upgrades.countDown ); }
     else if( !game.auto.upgrades.unlocked ){ unlock( `auto`, `upgrades` ); }
-    updatePrices();
-    updateHeader();
-    showPpr();
+    game.volatile.updateUpgrades = true;
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
 }
 
 function ascendDie( d ){
@@ -288,8 +291,8 @@ function ascendDie( d ){
     game.pips -= p;
     updateFaces( `all` );
     showUnfolded( d );
-    updateHeader();
-    showPpr();
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
     updateAscCosts();
     checkAchieve( `infinite`, `ascension`, game.dice[d].asc );
     let min = Infinity;
@@ -544,7 +547,7 @@ function buyPerk( p ){
     game.prestige.curr -= perkPrice( p );
     game.prestige.perks[p].amt++;
     if( p == `startPips` ){ game.pips++; }
-    updateHeader();
+    game.volatile.updateHeader = true;
     ppModal();
 }
 
@@ -570,12 +573,12 @@ function prestige(){
     }
     game.volatile.lastRoll = null;
     // UI reset
-    updateHeader();
+    game.volatile.updateHeader = true;
     updatePipCost();
-    updatePrices();
+    game.volatile.updateUpgrades = true;
     updateFaces( `all` );
     showUnfolded();
-    showPpr();
+    game.volatile.updatePpr = true;
     conditionalShow();
     updateAscCosts();
     if( game.auto.prestige.countDown > 0 ){ game.auto.prestige.countDown--; }
@@ -628,6 +631,9 @@ var game = {
         , mouseCount: null
         , mouseTarget: null
         , pause: false
+        , updatePpr: false
+        , updateHeader: false
+        , updateUpgrades: false
     }
     , animationTime: 2000
     , settleTime: 350
@@ -697,7 +703,7 @@ function checkFinite( m, arr ){
             ach.hidden.masochist = true;
         }
     }
-    showPpr();
+    game.volatile.updatePpr = true;
 }
 
 function gainAchievement( group, type, subtype ){
@@ -812,9 +818,9 @@ function autoUpgrade(){
             }
         }
     }
-    updatePrices();
-    updateHeader();
-    showPpr();
+    game.volatile.updateUpgrades = true;
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
     for( u in multNames ){
         checkAchieve( `infinite`, `upgrade`, game.upgrades[multNames[u].id], multNames[u].id );
     }
@@ -934,7 +940,7 @@ function resolveRoll( res ){
     autoUpgrade();
     autoPips();
     autoPrestige();
-    updateHeader();
+    game.volatile.updateHeader = true;
     postResults( p, o, m, b, pres, ppp );
     checkAchieve( `infinite`, `score`, game.points );
     refreshLockedUI()
@@ -1009,7 +1015,9 @@ function showPpr(){
         t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / 100,000`;
         let u = document.querySelector(`[data-ref="uSet"]`);
         u.parentElement.classList.remove(`noDisplay`);
-        u.innerHTML = numDisplay( Math.floor( o.got / 7776 * 100 ) ) + `%`;
+        let g = new Set( o.got ).size;
+        let p = new Set( o.possible ).size;
+        u.innerHTML = numDisplay( Math.floor( g / p * 100 ) ) + `%`;
     }
 }
 
@@ -1018,7 +1026,8 @@ function ppr(){
     let max = 0;
     let min = Infinity;
     let ppp = Math.max( 1, Math.floor( Math.abs( Math.log10( game.prestige.curr ) ) == Infinity ? 1 : Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
-    let got = 0;
+    let got = [];
+    let possible = [];
     if( ppp == Infinity ){ ppp = 1; }
     for( let a = 0; a < 6; a++ ){
         for( let b = 0; b < 6; b++ ){
@@ -1042,13 +1051,15 @@ function ppr(){
                         score += result;
                         if( result < min ){ min = result; }
                         if( result > max ){ max = result; }
-                        if( game.arrs[`r${aa}${bb}${cc}${dd}${ee}`] !== undefined ){ got++; }
+                        let r = `r${aa}${bb}${cc}${dd}${ee}`;
+                        possible.push( r );
+                        if( game.arrs[r] !== undefined ){ got.push( r ); }
                     }
                 }
             }
         }
     }
-    return { cumTotal: score, ppr: Math.floor( score / 7776 ), min: min, max: max, got: got }
+    return { cumTotal: score, ppr: Math.floor( score / 7776 ), min: min, max: max, got: got, possible: possible }
 }
 
 function sq( n ){
