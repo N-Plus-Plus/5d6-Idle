@@ -802,24 +802,15 @@ function autoPrestige(){
 }
 
 function autoUpgrade(){
-    let changed = true;
-    let n = 0;
-    while( changed ){
-        let min = Infinity;
-        let choice = null;
-        for( u in multNames ){
-            let id = multNames[u].id;
-            if( game.auto.upgrades.state[id] ){
-                let p = upgradePrice( id );
-                if( p < min ){ min = p; choice = id; }
+    for( u in multNames ){
+        let id = multNames[u].id;
+        if( game.auto.upgrades.state[id] ){
+            while( game.points >= upgradePrice( id ) ){
+                game.points -= upgradePrice( id );
+                game.upgrades[id]++;
+                checkAchieve( `infinite`, `upgrade`, game.upgrades[id], id );
             }
         }
-        if( game.points >= min ){
-            game.points -= min;
-            game.upgrades[choice]++;
-            n++;
-        }
-        else{ changed = false; }
     }
     updatePrices();
     updateHeader();
@@ -1018,7 +1009,7 @@ function showPpr(){
         t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / 100,000`;
         let u = document.querySelector(`[data-ref="uSet"]`);
         u.parentElement.classList.remove(`noDisplay`);
-        u.innerHTML = numDisplay( o.got / 7776 * 100 ) + `%`;
+        u.innerHTML = numDisplay( Math.floor( o.got / 7776 * 100 ) ) + `%`;
     }
 }
 
@@ -1369,6 +1360,8 @@ setInterval(() => { tickDown() }, game.tickTime );
 
 /*
 TODO
+
+Switch auto upgrades to buyMax to save on processor
 
 Toasties
 Make the X to close the modal sticky
