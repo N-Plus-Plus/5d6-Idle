@@ -631,3 +631,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .intrusion{
     margin-bottom: 1rem;
 }
+
+.resultRow{
+    font-size: 0.8rem;
+}
