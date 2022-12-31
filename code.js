@@ -233,7 +233,7 @@ function modPips( d, f, up ){
     }
     
     showUnfolded();
-    updateFaces( d );
+    updateFaces( `all` );
     game.volatile.updateHeader = true;
     game.volatile.updatePpr = true;
 }
@@ -360,15 +360,17 @@ function refreshLockedUI(){
         }
     }
     if( game.auto.prestige.unlocked == true ){
-        let b = document.querySelector(`.prestige`);
-        b.innerHTML = `Prestige`;
-        let tb = document.createElement(`div`);
-        tb.classList = `tickBox prestigeAuto`;
-        b.appendChild(tb);
-        if( game.auto.prestige.on ){
-            let t = document.createElement(`div`);
-            t.classList = `ticked`;
-            b.children[0].appendChild(t);
+        if( game.points >= 1e6 ){
+            let b = document.querySelector(`.prestige`);
+            b.innerHTML = `Prestige`;
+            let tb = document.createElement(`div`);
+            tb.classList = `tickBox prestigeAuto`;
+            b.appendChild(tb);
+            if( game.auto.prestige.on ){
+                let t = document.createElement(`div`);
+                t.classList = `ticked`;
+                b.children[0].appendChild(t);
+            }
         }
     }
     if( game.auto.upgrades.unlocked == true ){
@@ -797,18 +799,6 @@ let aDictionary = {
     rollsManual: { name: `Hands On`, desc: `Roll the dice # times manually`, comp: `# manual rolls!` },
     upgrade: { name: `Upgrade ?`, desc: `Upgrade ? Multiplier # times`, comp: `? upgraded # times!` },
     combo: { name: `Roll a ?`, desc: `Rolled ? # times`, comp: `? rolled # times!` },
-    // Upgrades
-
-    // SECRETS (that were a pain in the butt to hide, so please stop trying to spoil the surprise)
-    sixtyNine: { name: `TmljZSwgbG9s`, desc: ``, comp: `SGFkIGEgdG90YWwgc2NvcmUgb2YgNjkgbG9sb2xvbCE=`}, // Score of 69
-    fullestHouse: { name: `RnVsbGVzdCBIb3VzZQ==`, desc: ``, comp: `RG9lc24ndCBnZXQgYmV0dGVyIHRoYW4gbmluZXMgb3ZlciBlaWdodHMh` }, // Full house, 9s over 8s
-    orderlyStraight: { name: `T3JkZXJseSBTdHJhaWdodA==`, desc: ``, comp: `VGhhdCBpcyBvbmUgc3RyYWlnaHQgbG9va2luZyBzdHJhaWdodCE=` }, // 1, 2, 3, 4, 5
-    whatAreTheOdds: { name: `V2hhdCBhcmUgdGhlIG9kZHM/`, desc: ``, comp: `WWFodHplZSB3aXRoIDI1IGJsYW5rIGZhY2VzIC4uLiBvbmUgaW4gNyw3NzYh` }, // 5 of a kind, 25 blank faces
-    fiveNines: { name: `TWF4ZWQgT3V0`, desc: ``, comp: `Rml2ZSBuaW5lcyBpcyBubyBzbWFsbCBmZWF0IQ==` }, // 9 on every dice
-    unholyStraight: { name: `VW5ob2x5IFN0cmFpZ2h0`, desc: ``, comp: `WW91IGNvdWxkbid0IGdldCBoYWxmIG9mIHRoYXQgc3RyYWlnaHQgb24gcmVndWxhciBkaWNlIQ==` }, // 5, 6, 7, 8, 9 (any order)
-    luckySevens: { name: `Qmxlc3NlZA==`, desc: ``, comp: `Li4uIHdpdGggbHVja3kgc2V2ZW5zLCBhbmQgdGhlIHZvaWNlIHRoYXQgbWFkZSBtZSBjcnkh` }, // 7 on every dice, all faces sevens or blank
-    // All your pips in one basket (nines on every face of one die, blanks for everything else)
-    // Prestige without ascending
 }
 
 function autoAscend(){
@@ -826,7 +816,7 @@ function autoAscend(){
                 if( !game.dice[d].auto ){}
                 else if( game.dice[d].asc < min ){ min = game.dice[d].asc; choice = d; }
             }
-            if( game.pips >= getAscCost( choice ) ){ ascendDie( choice ); }
+            if( game.pips > getAscCost( choice ) ){ ascendDie( choice ); }
             else{ changed = false; }
         }
     }
@@ -844,13 +834,19 @@ function autoPrestige(){
 }
 
 function autoUpgrade(){
+    let s = [];
     for( u in multNames ){
         let id = multNames[u].id;
-        if( game.auto.upgrades.state[id] ){
-            while( game.points >= upgradePrice( id ) ){
-                game.points -= upgradePrice( id );
-                game.upgrades[id]++;
-                checkAchieve( `infinite`, `upgrade`, game.upgrades[id], id );
+        if( game.auto.upgrades.state[id] ){ s.push( id ); }
+    }
+    let end = false;
+    while( !end ){
+        end = true;
+        for( let i = 0; i < s.length; i++ ){
+            if( game.points >= upgradePrice( s[i] ) ){
+                game.points -= upgradePrice( s[i] );
+                game.upgrades[s[i]]++;
+                end = false;
             }
         }
     }
@@ -874,30 +870,30 @@ function parseMultiplier( arr ){
     let multi = ``;
     arr = arr.filter( x => x !== 0 );
     const a = {}
-    for( let i = 0; i < 10; i++ ){ a[i] = 0; }
+    for( let i = 0; i <= getFaceMax(); i++ ){ a[i] = 0; }
     for( i in arr ){ a[arr[i]]++; }
-    for( let i = 0; i < 10; i++ ){
-        if( i < 6 ){
+    for( let i = 0; i <= getFaceMax(); i++ ){
+        if( i < getFaceMax() - 3 ){
             if( a[i] == 1 && a[i+1] == 1 && a[i+2] == 1 && a[i+3] == 1 && a[i+4] == 1 ){ multi = `straight`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, arr ]; }
         }
     }
-    for( let i = 0; i < 10; i++ ){
+    for( let i = 0; i <= getFaceMax(); i++ ){
         if( a[i] == 5 ){ multi = `five`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, [i] ]; }
     }
-    for( let i = 0; i < 10; i++ ){
+    for( let i = 0; i <= getFaceMax(); i++ ){
         if( a[i] == 4 ){ multi = `four`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, [i] ]; }
     }
-    for( let i = 0; i < 10; i++ ){
+    for( let i = 0; i <= getFaceMax(); i++ ){
         if( a[i] == 3 ){
-            for( let j = 0; j < 10; j++ ){
+            for( let j = 0; j <= getFaceMax(); j++ ){
                 if( a[j] == 2 ){ multi = `fullHouse`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, [i,j] ]; }
             }
             multi = `three`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, [i] ];
         }
     }
-    for( let i = 0; i < 10; i++ ){
+    for( let i = 0; i <= getFaceMax(); i++ ){
         if( a[i] == 2 ){
-            for( let j = 0; j < 10; j++ ){
+            for( let j = 0; j <= getFaceMax(); j++ ){
                 if( i == j ){}
                 else if( a[j] == 2 ){ multi = `twoPair`; return [ multiplier[multi] * ( 1 + game.upgrades[multi] ) * mod, multi, [i,j] ]; }
             }
@@ -1440,7 +1436,8 @@ setInterval(() => { tickDown() }, game.tickTime );
 /*
 TODO
 
-Place 270 pips on your dice (9 on ever face) to "break through" - Unlock additional pips per dice (exceeding the nine limit)
+Loadouts ...
+All Automation On / Off
 
 Toasties
 Make the X to close the modal sticky
