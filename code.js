@@ -168,7 +168,7 @@ function showUnfolded(){
                         // toggle on and off loadout
                         let p = document.createElement(`div`);
                         p.setAttribute(`data-ref`, i );
-                        if( game.dice[i].auto ){ p.classList = `checked`; }
+                        if( game.dice[i].autoLoadout ){ p.classList = `checked`; }
                         else{ p.classList = `unchecked`; }
                         if( flip ){ p.classList.add( `flip` ); }
                         c.appendChild( p );
@@ -287,12 +287,12 @@ function setLoadout( d ){
     showUnfolded();
 }
 function applyLoadout( d ){
-    game.dice[d].auto = true;
+    game.dice[d].autoLoadout = true;
     doLoadout();
     showUnfolded();
 }
 function unApplyLoadout( d ){
-    game.dice[d].auto = false;
+    game.dice[d].autoLoadout = false;
     doLoadout();
     showUnfolded();
 }
@@ -328,7 +328,7 @@ function doLoadout(){
     let y = 0;
     let z = 0;
     for( d in game.dice ){
-        if( game.dice[d].auto ){
+        if( game.dice[d].autoLoadout ){
             let x = 0;
             z += 6;
             for( f in game.dice[d].faces ){
@@ -688,16 +688,17 @@ function prestige(){
     else if( !game.auto.prestige.unlocked ){ unlock( `auto`, `prestige` ); }
     localStorage.setItem( `backup-game` , JSON.stringify( game ) );
     localStorage.setItem( `backup-ach` , JSON.stringify( ach ) );
+    doLoadout();
 }
 
 
 var game = {
     dice: [
-        { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
-        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
-        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
-        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
-        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
+        { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false, autoLoadout: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false, autoLoadout: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false, autoLoadout: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false, autoLoadout: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false, autoLoadout: false }
     ]
     , pips: 4
     , points: 0
@@ -1055,12 +1056,12 @@ function resolveRoll( res ){
     autoAscend();
     autoUpgrade();
     autoPips();
+    doLoadout(); 
     autoPrestige();
     game.volatile.updateHeader = true;
     postResults( p, o, m, b, pres, ppp );
     checkAchieve( `infinite`, `score`, game.points );
     game.volatile.updateLockedUI = true;
-    doLoadout(); 
     saveState();
 }
 
@@ -1498,6 +1499,9 @@ function loadGame(){
             if( g.dice[d].loadOut.length > 0 ){
                 game.dice[d].loadOut = g.dice[d].loadOut;
                 game.dice[d].auto = g.dice[d].auto;
+                if( g.dice[d].autoLoadout !== undefined ){
+                    game.dice[d].autoLoadout = g.dice[d].autoLoadout;
+                }
             }
         }
     }
