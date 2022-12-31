@@ -104,7 +104,7 @@ br { margin-bottom: 1rem; }
 .unfolded:hover{
     opacity: 1;
 }
-.column{ width: calc( var( --face ) / 2 ); }
+.column{ width: calc( var( --face ) / 2 ); display: flex; justify-content: center; align-items: center;}
 .row{ height: calc( var( --face ) / 2 ); display: flex; }
 
 .emph{ font-weight: 700;}
@@ -254,6 +254,13 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .f17{ background-image: url(./a/17.png);}
 .f18{ background-image: url(./a/18.png);}
 .f19{ background-image: url(./a/19.png);}
+
+.setLoadout{ background-image: url(./a/setLoadout.png); }
+.isLoadout,.setLoadout.isLoadout{ background-image: url(./a/isLoadout.png); }
+.unchecked{ background-image: url(./a/unchecked.png); }
+.checked,.unchecked.checked{ background-image: url(./a/checked.png); }
+.setLoadout,.isLoadout,.unchecked,.checked{ width: 75%; height: 75%; border-radius: 50%; cursor: pointer;}
+.setLoadout.flip,.isLoadout.flip,.unchecked.flip,.checked.flip{ transform: rotate( 180deg ); }
 
 .upPip,.downPip{
     height: 50%;

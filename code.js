@@ -25,6 +25,7 @@ function onLoad(){
     }
     resize();
     refreshLockedUI();
+    game.volatile.ttnr = ( game.baseTTNR * getPerk( `autoTime` ) ) + getAnimationTime( true );
 }
 
 function clicked( e ){
@@ -59,6 +60,9 @@ function clicked( e ){
     else if( c.contains(`buyPipAuto`) ){ toggleAutoPips(); }
     else if( c.contains(`upgradeAuto`) ){ toggleAutoUpgrade( t.getAttribute(`data-ref`) ); }
     else if( c.contains(`prestigeAuto`) ){ toggleAutoPrestige(); }
+    else if( c.contains(`setLoadout`) ){ setLoadout( t.getAttribute(`data-ref`) ); }
+    else if( c.contains(`unchecked`) ){ applyLoadout( t.getAttribute(`data-ref`) ); }
+    else if( c.contains(`checked`) ){ unApplyLoadout( t.getAttribute(`data-ref`) ); }
 }
 
 function mouseDown( e ){
@@ -145,11 +149,30 @@ function showUnfolded(){
                 c.classList = `column`;
                 if( ii == 1 || j == 1 ){
                     c.classList.add(`on`);
-                    c.innerHTML = `
-                        <div class="face modDice f${game.dice[i].faces[f]}"></div>`
+                    c.innerHTML = `<div class="face modDice f${game.dice[i].faces[f]}"></div>`
                     c.setAttribute( `data-ref`, f );
                     c.setAttribute( `data-die`, i );
                     f++;
+                }
+                if( ach.hidden.modPips ){
+                    if( ( ii == 2 && j == 0 && flip ) || ( ii == 0 && j == 0 && !flip ) ){
+                        // set and show loadout
+                        let p = document.createElement(`div`);
+                        p.setAttribute(`data-ref`, i );
+                        if( testLoadout( i ) ){ p.classList = `isLoadout`; }
+                        else{ p.classList = `setLoadout`; }
+                        if( flip ){ p.classList.add( `flip` ); }
+                        c.appendChild( p );
+                    }
+                    else if( ( ii == 0 && j == 0 && flip ) || ( ii == 2 && j == 0 && !flip ) ){
+                        // toggle on and off loadout
+                        let p = document.createElement(`div`);
+                        p.setAttribute(`data-ref`, i );
+                        if( game.dice[i].auto ){ p.classList = `checked`; }
+                        else{ p.classList = `unchecked`; }
+                        if( flip ){ p.classList.add( `flip` ); }
+                        c.appendChild( p );
+                    }
                 }
                 r.appendChild(c);
             }
@@ -159,6 +182,14 @@ function showUnfolded(){
         us[i].appendChild( u );
         flip = !flip;
     }
+}
+
+function testLoadout( d ){
+    let output = true;
+    for( let i = 0; i < game.dice[d].faces.length; i++ ){
+        if( game.dice[d].faces[i] !== game.dice[d].loadOut[i] ){ output = false; }
+    }
+    return output;
 }
 
 function updateFaces( t ){
@@ -218,7 +249,11 @@ function modPips( d, f, up ){
     }
     if( up ){
         if( game.auto.loadOut.countDown > 0 ){ game.auto.loadOut.countDown--; }
-        else if( !game.auto.loadOut.unlocked ){ unlock( `auto`, `loadOut` ); }
+        else if( !game.auto.loadOut.unlocked ){
+            unlock( `auto`, `loadOut` );
+            ach.hidden.modPips = true;
+        }
+        else{ ach.hidden.modPips = true; }
     }
     if( !ach.hidden.populist ){
         let x = 0;
@@ -244,6 +279,24 @@ function getFaceMax(){
     return n;
 }
 
+function setLoadout( d ){
+    game.dice[d].loadOut = [];
+    for( f in game.dice[d].faces ){
+        game.dice[d].loadOut.push( game.dice[d].faces[f] );
+    }
+    showUnfolded();
+}
+function applyLoadout( d ){
+    game.dice[d].auto = true;
+    doLoadout();
+    showUnfolded();
+}
+function unApplyLoadout( d ){
+    game.dice[d].auto = false;
+    doLoadout();
+    showUnfolded();
+}
+
 function buyPip(){
     if( game.points < pipPrice() ){ return }
     game.points -= pipPrice();
@@ -253,6 +306,7 @@ function buyPip(){
     else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
     game.volatile.updateHeader = true;
+    doLoadout();
 }
 
 function buyAllPips(){
@@ -267,6 +321,31 @@ function buyAllPips(){
     else if( !game.auto.pips.unlocked ){ unlock( `auto`, `pips` ); }
     updatePipCost();
     game.volatile.updateHeader = true;
+    doLoadout();
+}
+
+function doLoadout(){
+    let y = 0;
+    let z = 0;
+    for( d in game.dice ){
+        if( game.dice[d].auto ){
+            let x = 0;
+            z += 6;
+            for( f in game.dice[d].faces ){
+                if( game.dice[d].faces[f] == game.dice[d].loadOut[f] ){ x++; y++; }
+                else if( game.dice[d].faces[f] < game.dice[d].loadOut[f] ){ 
+                    if( game.pips > 0 ){ modPips( d, f, true ); }
+                    else{ y++ }
+                }
+                else{ modPips( d, f, false ); }
+            }
+            if( x == 6 && document.querySelector(`.setLoadout[data-ref="${d}"]`) !== null ){ // dice is at loadout
+                document.querySelector(`.setLoadout[data-ref="${d}"]`).classList = `isLoadout`;
+                console.log( `met`)
+            }
+        }
+    }
+    if( y !== z ){ doLoadout(); }
 }
 
 function buyUpgrade( type ){
@@ -525,13 +604,11 @@ function showPrestige(){
     if( delta > 0 ){ suff = ` and +${ numDisplay( delta ) }x to all rolls`.replace(` +1x`, game.prestige.watermark == 0 ? ` 1x ( no benefit )` : ` +1x` ).replace( ` +`, game.prestige.watermark == 0 ? ` ` : ` +`); }
     document.getElementById(`prestige`).innerHTML = `<div class="button prestige">Prestige</div> to receive ${numDisplay( pg ) } PP${suff}`;
 }
-function updateFooter(){
-    // let h = document.getElementById(`footer`);
-    // h.innerHTML = `points = <div class="pips">${numDisplay( game.points )}</div>`
-}
+
 function updatePipCost(){
     document.getElementById(`pipCost`).innerHTML = numDisplay( pipPrice() );
 }
+
 function updatePrices(){
     let a = document.querySelectorAll(`.upgrade`);
     let u = getPerk(`upgrades`);
@@ -616,11 +693,11 @@ function prestige(){
 
 var game = {
     dice: [
-        { faces: [0,0,0,0,0,0], asc: 0 }
-        , { faces: [0,0,0,0,0,0], asc: 0 }
-        , { faces: [0,0,0,0,0,0], asc: 0 }
-        , { faces: [0,0,0,0,0,0], asc: 0 }
-        , { faces: [0,0,0,0,0,0], asc: 0 }
+        { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
+        , { faces: [0,0,0,0,0,0], asc: 0, loadOut: [0,0,0,0,0,0], auto: false }
     ]
     , pips: 4
     , points: 0
@@ -787,6 +864,7 @@ var ach = {
     , hidden: { 
         masochist: false
         , populist: false
+        , modPips: false
     }
     , balance: { infinite: 0, finite: 0, hidden: 0 }
 }
@@ -816,7 +894,13 @@ function autoAscend(){
                 if( !game.dice[d].auto ){}
                 else if( game.dice[d].asc < min ){ min = game.dice[d].asc; choice = d; }
             }
-            if( game.pips > getAscCost( choice ) ){ ascendDie( choice ); }
+            let current = 0;
+            for( e in game.dice ){
+                for( f in game.dice[e].faces ){
+                    current += game.dice[e].faces[f];
+                }
+            }
+            if( current + game.pips > getAscCost( choice ) && game.pips >= getAscCost( choice ) ){ ascendDie( choice ); }
             else{ changed = false; }
         }
     }
@@ -976,6 +1060,7 @@ function resolveRoll( res ){
     postResults( p, o, m, b, pres, ppp );
     checkAchieve( `infinite`, `score`, game.points );
     game.volatile.updateLockedUI = true;
+    doLoadout(); 
     saveState();
 }
 
@@ -1105,6 +1190,7 @@ function zen(){
     document.getElementById(`footer`).classList.toggle(`noDisplay`);
     document.querySelector(`.info`).classList.toggle(`noDisplay`);
     document.querySelector(`.achievements`).classList.toggle(`noDisplay`);
+    document.querySelector(`.hidden`).classList.toggle(`noDisplay`);
     document.querySelector(`.leftSection`).classList.toggle(`noDisplay`);
     document.querySelector(`.rightSection`).classList.toggle(`noDisplay`);
     document.querySelector(`.topRow`).classList.toggle(`noDisplay`);
@@ -1113,6 +1199,7 @@ function zen(){
         document.querySelector(':root').style.setProperty('--face', '5rem');
     }
     else{ document.querySelector(':root').style.setProperty('--face', '10rem'); }
+    resize();
 }
 
 function pause(){
@@ -1351,6 +1438,17 @@ function hiddenModal(){
         <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
         t.appendChild( populist );
     }
+    if( ach.hidden.modPips ){
+        let modPips = document.createElement(`div`);
+        modPips.classList = `intrusion`;
+        modPips.innerHTML = `<div class="heading">Power Pipper</div>
+        <div class="deets">You've manually added 2,500 pips since you started playing. That's a lot.</div>
+        <div class="deets">To help improve your quality of life, you can now save Loadouts for your dice.</div>
+        <div class="deets">Each die can have only one Loadout saved.</div>
+        <div class="deets">When active, your pips will be automatically spent and placed until your die matches its Loadout.</div>
+        <div class="deets">You can change your Loadout at any time, but make sure to disable it before making changes.</div>`
+        t.appendChild( modPips );
+    }
 }
 
 function numDisplay( x ){
@@ -1396,6 +1494,12 @@ function loadGame(){
     for( d in game.dice ){
         for( f in game.dice[d].faces ){ game.dice[d].faces[f] = g.dice[d].faces[f];}
         game.dice[d].asc = g.dice[d].asc;
+        if( g.dice[d].loadOut !== undefined ){
+            if( g.dice[d].loadOut.length > 0 ){
+                game.dice[d].loadOut = g.dice[d].loadOut;
+                game.dice[d].auto = g.dice[d].auto;
+            }
+        }
     }
     for( u in Object.keys( game.upgrades ) ){ game.upgrades[Object.keys( game.upgrades )[u]] = g.upgrades[Object.keys( game.upgrades )[u]]; }
     game.combo = g.combo;
@@ -1420,7 +1524,7 @@ function loadGame(){
         else{ ach.infinite[i] = a.infinite[i]; };
     }
     for( i in a.hidden ){
-        ach.hidden = a.hidden;
+        ach.hidden[i] = a.hidden[i];
     }
     ach.finite = a.finite;
     // Data Fixing
@@ -1438,6 +1542,7 @@ TODO
 
 Loadouts ...
 All Automation On / Off
+Move lifetime / auto achievements to Hidden with snarky text
 
 Toasties
 Make the X to close the modal sticky
