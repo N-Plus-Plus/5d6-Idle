@@ -244,6 +244,16 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .f7{ background-image: url(./a/7.png);}
 .f8{ background-image: url(./a/8.png);}
 .f9{ background-image: url(./a/9.png);}
+.f10{ background-image: url(./a/10.png);}
+.f11{ background-image: url(./a/11.png);}
+.f12{ background-image: url(./a/12.png);}
+.f13{ background-image: url(./a/13.png);}
+.f14{ background-image: url(./a/14.png);}
+.f15{ background-image: url(./a/15.png);}
+.f16{ background-image: url(./a/16.png);}
+.f17{ background-image: url(./a/17.png);}
+.f18{ background-image: url(./a/18.png);}
+.f19{ background-image: url(./a/19.png);}
 
 .upPip,.downPip{
     height: 50%;
@@ -450,7 +460,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
 .button.prestige{ margin: 0 1rem 0 0; color: black;}
 .button.spendPP.disabled{ pointer-events: all; }
 
-.info,.achievements{
+.info,.achievements,.hidden{
     position: absolute;
     bottom: 5rem;
     left: 2rem;
@@ -472,10 +482,14 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     background-image: url(./a/i.png);
     left: 2rem;
 }
-.info.noDisplay,.achievements.noDisplay{ display: none; }
+.info.noDisplay,.achievements.noDisplay,.hidden.noDisplay{ display: none; }
 .achievements{
     background-image: url(./a/trophy.png);
     left: 7rem;
+}
+.hidden{
+    background-image: url(./a/hidden.png);
+    left: 12rem;
 }
 .deets{
     color: var(--g1);
@@ -519,6 +533,7 @@ section{ display: flex; flex-direction: column; height: 100%; overflow-y: auto; 
     flex-direction: column;
 }
 .achTable{ max-width: 60rem; }
+.achTable.longTable{ max-width: 100%;}
 .hRow{
     color: white;
     height: 3rem;

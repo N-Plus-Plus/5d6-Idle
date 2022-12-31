@@ -54,6 +54,7 @@ function clicked( e ){
     else if( c.contains(`hardReset`) ){ hardReset(); }
     else if( c.contains(`softReset`) ){ softReset(); }
     else if( c.contains(`achievements`) ){ achieveModal(); }
+    else if( c.contains(`hidden`) ){ hiddenModal(); }
     else if( c.contains(`ascendAuto`) ){ toggleAutoAscend( t.getAttribute(`data-ref`) ); }
     else if( c.contains(`buyPipAuto`) ){ toggleAutoPips(); }
     else if( c.contains(`upgradeAuto`) ){ toggleAutoUpgrade( t.getAttribute(`data-ref`) ); }
@@ -202,7 +203,7 @@ function updateAscCosts(){
 function modPips( d, f, up ){
     if( d == null ){ return }
     if( up && game.pips < 1 ){ return }
-    if( up && game.dice[d].faces[f] == 9 ){ return }
+    if( up && game.dice[d].faces[f] == getFaceMax() ){ return }
     if( !up && game.dice[d].faces[f] == 0 ){ return }
     // valid purchase
     if( up ){
@@ -219,10 +220,28 @@ function modPips( d, f, up ){
         if( game.auto.loadOut.countDown > 0 ){ game.auto.loadOut.countDown--; }
         else if( !game.auto.loadOut.unlocked ){ unlock( `auto`, `loadOut` ); }
     }
+    if( !ach.hidden.populist ){
+        let x = 0;
+        for( d in game.dice ){
+            for( f in game.dice[d].faces ){
+                x += game.dice[d].faces[f];
+            }
+        }
+        if( x == 270 ){
+            gainAchievement( `hidden`, `populist` );
+        }
+    }
+    
     showUnfolded();
     updateFaces( d );
     game.volatile.updateHeader = true;
     game.volatile.updatePpr = true;
+}
+
+function getFaceMax(){
+    let n = 9;
+    if( ach.hidden.populist ){ n = 19; }
+    return n;
 }
 
 function buyPip(){
@@ -372,6 +391,10 @@ function refreshLockedUI(){
         }
     }
     if( game.auto.loadOut.unlocked == true ){}
+
+    let h = false;
+    for( a in ach.hidden ){ if( ach.hidden[a] ){ h = true; } }
+    if( h ){ document.querySelector(`.hidden`).classList.remove(`noDisplay`); }
 }
 
 function toggleAutoAscend( d ){
@@ -710,6 +733,14 @@ function checkFinite( m, arr ){
 
 function gainAchievement( group, type, subtype ){
     rebalanceAchievement();
+    if( group == `hidden` && type == `populist` ){
+        ach.hidden.populist = true;
+        for( let i = 10; i < 20; i++ ){
+            if( ach.finite[`r${i}`] == undefined ){
+                ach.finite[`r${i}`] = { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false };
+            }
+        }
+    }
     console.log( `Achievement: `, group, type, subtype );
 }
 
@@ -751,7 +782,10 @@ var ach = {
         r8: { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false },
         r9: { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false },
     }
-    , hidden: { masochist: false }
+    , hidden: { 
+        masochist: false
+        , populist: false
+    }
     , balance: { infinite: 0, finite: 0, hidden: 0 }
 }
 
@@ -898,7 +932,7 @@ function spinAll(){
 }
 
 function getAnimationTime( both ){
-    let mod = 1 - ( 0.0075 * ach.balance.finite );
+    let mod = 1 - ( 0.005 * ach.balance.finite );
     if( both == null ){
         return Math.floor( game.settleTime * mod )
     }
@@ -1014,7 +1048,9 @@ function showPpr(){
     if( ach.hidden.masochist ){
         let t = document.querySelector(`[data-ref="unique"]`);
         t.parentElement.classList.remove(`noDisplay`);
-        t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / 100,000`;
+        let x = 100000;
+        if( ach.hidden.populist ){ x = 3200000; }
+        t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / ${numDisplay( x )}`;
         let u = document.querySelector(`[data-ref="uSet"]`);
         u.parentElement.classList.remove(`noDisplay`);
         let g = new Set( o.got ).size;
@@ -1165,7 +1201,6 @@ function infoModal(){
     <div class="deets">Achievements matter!</div>
     <div class="deets ind">The ones marked <i>Finite</i> speed up the animation time of the dice rolling</div>
     <div class="deets ind">The ones marked <i>Infinite</i> may be achieved again and again, and keep adding bonuses when gained</div>
-    <div class="deets ind">The ones marked <i>Hidden</i> probably aren't even implemented yet, I wouldn't worry about them</div>
     <div class="deets">After your first Prestige at one million points (or more), you will be able to purchase Perks (the first costs 2PP)</div>
     <div class="deets">The cost of Perks does <u>not</u> reflect their relative value - Choose wisely based on your play stye</div>
     <div class="deets">Depending on the stage of the game and Perks you have bought, the optimal strategy will change drastically</div>
@@ -1180,13 +1215,7 @@ function infoModal(){
 function achieveModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
-    t.innerHTML = `<div class="close">x</div>
-    <div class="heading firstH">Finite Achievements</div>
-    <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.75% (additive), currently -${numDisplay( ( 0.75 * ach.balance.finite ) )}%</div>
-    <div class="achTable">
-        <div class="hRow">
-            <div class="hCol"><div class="space"></div>Combo</div>
-            <div class="dCol f1 padMe"></div>
+    let q = `<div class="dCol f1 padMe"></div>
             <div class="dCol f2 padMe"></div>
             <div class="dCol f3 padMe"></div>
             <div class="dCol f4 padMe"></div>
@@ -1194,14 +1223,30 @@ function achieveModal(){
             <div class="dCol f6 padMe"></div>
             <div class="dCol f7 padMe"></div>
             <div class="dCol f8 padMe"></div>
-            <div class="dCol f9 padMe"></div>
+            <div class="dCol f9 padMe"></div>`;
+    if( ach.hidden.populist ){
+        q += `<div class="dCol f10 padMe"></div>
+            <div class="dCol f11 padMe"></div>
+            <div class="dCol f12 padMe"></div>
+            <div class="dCol f13 padMe"></div>
+            <div class="dCol f14 padMe"></div>
+            <div class="dCol f15 padMe"></div>
+            <div class="dCol f16 padMe"></div>
+            <div class="dCol f17 padMe"></div>
+            <div class="dCol f18 padMe"></div>
+            <div class="dCol f19 padMe"></div>`
+    }
+    t.innerHTML = `<div class="close">x</div>
+    <div class="heading firstH">Finite Achievements</div>
+    <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.5% (additive), currently -${numDisplay( ( 0.5 * ach.balance.finite ) )}%</div>
+    <div class="achTable">
+        <div class="hRow">
+            <div class="hCol"><div class="space"></div>Combo</div>${q}
         </div>
     </div>
     <div class="heading">Infinite Achievements</div>
     <div class="deets">Every rank of each achievement below improves your Prestige Points (PP) rewards by 1% (compounding), currently +${numDisplay( ( Math.pow( 1.01, ach.balance.infinite ) - 1 ) * 100 )}%</div>
     <div class="achContainer"></div>
-    <div class="heading">Hidden Achievements</div>
-    <div class="deets">...shh</div>
     `;
     buildInfiniteTable();
     buildFiniteTable();
@@ -1209,12 +1254,13 @@ function achieveModal(){
 
 function buildFiniteTable(){
     let t = document.querySelector(`.achTable`);
+    if( getFaceMax() == 19 ){ t.classList.add(`longTable`); }
     let i = 0;
     for( m in multNames ){
         let row = document.createElement(`div`);
         row.classList = `xRow ${i % 2 == 0 ? "shade" : ""}`;
         row.innerHTML = `<div class="hRow"><div class="space"></div>${multNames[m].name}</div>`;
-        for( let d = 1; d < 10; d++ ){
+        for( let d = 1; d <= getFaceMax(); d++ ){
             let col = document.createElement(`div`);
             col.classList = `dCol`;
             let val = `<a style="color: var(--g3)">No</a>`;
@@ -1224,16 +1270,6 @@ function buildFiniteTable(){
         }
         t.appendChild( row );
         i++;
-    }
-    if( ach.hidden.masochist ){
-        let addendum = document.createElement(`div`);
-        addendum.classList = `intrusion`;
-        addendum.innerHTML = `<div class="heading">Masochist.</div>
-        <div class="deets">I guess you are a completionist, then ... that's fine. However you define fun is fine by me.</div>
-        <div class="deets">You now gain a 0.1% bonus to PP for every unique combination of face values you roll (order matters).</div>
-        <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of a possible 100,000 combinations.</div>
-        <div class="deets">Good luck with that.</div>`
-        t.after( addendum );
     }
 }
 
@@ -1288,6 +1324,36 @@ function buildInfiniteTable(){
                 t.appendChild(row);
             }
         }
+    }
+}
+
+function hiddenModal(){
+    document.querySelector(`.modal`).classList.remove(`noDisplay`);
+    let t = document.querySelector(`.modalContainer`);
+    t.innerHTML = `<div class="close">x</div>
+    <div class="heading firstH">Hidden Achievements</div>`
+    if( ach.hidden.masochist ){
+        let masochist = document.createElement(`div`);
+        let x = 100000;
+        if( ach.hidden.populist ){ x = 3200000; }
+        masochist.classList = `intrusion`;
+        masochist.innerHTML = `<div class="heading">Masochist</div>
+        <div class="deets">I guess you are a completionist, then ... that's fine. However you define fun is fine by me.</div>
+        <div class="deets">You now gain a 0.1% bonus to PP for every unique combination of face values you roll (order matters).</div>
+        <div class="deets">You're up to ${numDisplay( Object.keys( game.arrs ).length )} unique face value combinations out of a possible ${numDisplay( x )}.</div>
+        <div class="deets">Good luck with that.</div>`
+        t.appendChild( masochist );
+    }
+    if( ach.hidden.populist ){
+        let populist = document.createElement(`div`);
+        populist.classList = `intrusion`;
+        populist.innerHTML = `<div class="heading">Populist</div>
+        <div class="deets">Okay okay - you got a nine on ever face of every dice. Why though? Just to see what might happen?</div>
+        <div class="deets">Well now this has happened.</div>
+        <div class="deets">You can now increase the face of any die up to 19 pips.</div>
+        <div class="deets">Finite Achievements have been extended to accomodate new possibilities.</div>
+        <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
+        t.appendChild( populist );
     }
 }
 
@@ -1374,7 +1440,7 @@ setInterval(() => { tickDown() }, game.tickTime );
 /*
 TODO
 
-Switch auto upgrades to buyMax to save on processor
+Place 270 pips on your dice (9 on ever face) to "break through" - Unlock additional pips per dice (exceeding the nine limit)
 
 Toasties
 Make the X to close the modal sticky
