@@ -262,9 +262,9 @@ function modPips( d, f, up ){
                 x += game.dice[d].faces[f];
             }
         }
-        if( x == 270 ){
-            gainAchievement( `hidden`, `populist` );
-        }
+        // if( x == 270 ){
+        //     gainAchievement( `hidden`, `populist` );
+        // }
     }
     
     showUnfolded();
@@ -275,7 +275,7 @@ function modPips( d, f, up ){
 
 function getFaceMax(){
     let n = 9;
-    if( ach.hidden.populist ){ n = 19; }
+    // if( ach.hidden.populist ){ n = 19; }
     return n;
 }
 
@@ -714,11 +714,11 @@ var game = {
         , watermark: 0
         , perks: {
             startPips: { impact: 1, amt: 0, cost: 2, costScale: 2, type: `multiply`,    disp: `Head Start`, desc: `+1 Pip available after prestige`  }
-            , upgPower: { impact: 0.85, amt: 0, cost: 5, costScale: 2, type: `power`,   disp: `Multiplier Cost`, desc: `Multiplier upgrade price creep reduced by 15%` }
-            , pipPower: { impact: 0.8, amt: 0, cost: 10, costScale: 2, type: `power`,   disp: `Pip Price Power`, desc: `Pip price creep reduced by 20%` }
-            , autoTime: { impact: 0.75, amt: 0, cost: 15, costScale: 2, type: `power`,  disp: `Speedy Roller`, desc: `Reduce time between rolls by 25%` }
+            , upgPower: { impact: 0.9, amt: 0, cost: 5, costScale: 2, type: `power`,   disp: `Multiplier Cost`, desc: `Multiplier upgrade price creep reduced by 10%` }
+            , autoTime: { impact: 0.75, amt: 0, cost: 25, costScale: 2, type: `power`,  disp: `Speedy Roller`, desc: `Reduce time between rolls by 25%` }
             , square: { impact: 1, amt: 0, cost: 50, costScale: 2, type: `multiply`,    disp: `Adding Squared`, desc: `Dice values gain x<sup>+1 </sup> for additions` }
-            , spares: { impact: 1, amt: 0, cost: 100, costScale: 2, type: `multiply`,   disp: `Spare PPower`, desc: `Results x floor( log10( unspent PP ) )` }
+            , pipPower: { impact: 0.8, amt: 0, cost: 100, costScale: 2, type: `power`,   disp: `Pip Price Power`, desc: `Pip price creep reduced by 20%` }
+            , spares: { impact: 1, amt: 0, cost: 250, costScale: 2, type: `multiply`,   disp: `Spare PPower`, desc: `Results x floor( log10( unspent PP ) )` }
             , upgrades: { impact: 0.1, amt: 0, cost: 1e3, costScale: 2, type: `multiply`,   disp: `Every Bit Helps`, desc: `Multipliers get +0.1% for every upgrade bought` }
         }
         , floor: 5
@@ -813,14 +813,14 @@ function checkFinite( m, arr ){
 
 function gainAchievement( group, type, subtype ){
     rebalanceAchievement();
-    if( group == `hidden` && type == `populist` ){
-        ach.hidden.populist = true;
-        for( let i = 10; i < 20; i++ ){
-            if( ach.finite[`r${i}`] == undefined ){
-                ach.finite[`r${i}`] = { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false };
-            }
-        }
-    }
+    // if( group == `hidden` && type == `populist` ){
+    //     ach.hidden.populist = true;
+    //     for( let i = 10; i < 20; i++ ){
+    //         if( ach.finite[`r${i}`] == undefined ){
+    //             ach.finite[`r${i}`] = { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false };
+    //         }
+    //     }
+    // }
     console.log( `Achievement: `, group, type, subtype );
 }
 
@@ -1131,7 +1131,7 @@ function showPpr(){
         let t = document.querySelector(`[data-ref="unique"]`);
         t.parentElement.classList.remove(`noDisplay`);
         let x = 100000;
-        if( ach.hidden.populist ){ x = 3200000; }
+        // if( ach.hidden.populist ){ x = 3200000; }
         t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / ${numDisplay( x )}`;
         let u = document.querySelector(`[data-ref="uSet"]`);
         u.parentElement.classList.remove(`noDisplay`);
@@ -1145,10 +1145,12 @@ function ppr(){
     let score = 0;
     let max = 0;
     let min = Infinity;
-    let ppp = Math.max( 1, Math.floor( Math.abs( Math.log10( game.prestige.curr ) ) == Infinity ? 1 : Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    // let ppp = Math.max( 1, Math.floor( Math.abs( Math.log10( game.prestige.curr ) ) == Infinity ? 1 : Math.log10( game.prestige.curr ) + 1 ) * getPerk(`spares`) );
+    let ppp = Math.max( 1, Math.floor( Math.log10( ( isNaN( game.prestige.curr ) ? 0 : game.prestige.curr ) + 1 ) ) * getPerk(`spares`) );
+    if( isNaN( ppp ) ){ ppp = 0; }
+    if( ppp == Infinity ){ ppp = 1; }
     let got = [];
     let possible = [];
-    if( ppp == Infinity ){ ppp = 1; }
     for( let a = 0; a < 6; a++ ){
         for( let b = 0; b < 6; b++ ){
             for( let c = 0; c < 6; c++ ){
@@ -1167,7 +1169,7 @@ function ppr(){
                         if( dd !== 0 ){ o *= dd * Math.pow( game.ascMod, game.dice[3].asc ); }
                         if( ee !== 0 ){ o *= ee * Math.pow( game.ascMod, game.dice[4].asc ); }
                         let pres = Math.max( 1, game.prestige.watermark );
-                        let result = ( sq(aa) + sq(bb) + sq(cc) + sq(dd) + sq(ee) ) * o * m * pres * ppp;
+                        let result = ( sq(aa) + sq(bb) + sq(cc) + sq(dd) + sq(ee) ) * o * m * pres * Math.max( 1, ppp );
                         score += result;
                         if( result < min ){ min = result; }
                         if( result > max ){ max = result; }
@@ -1215,7 +1217,7 @@ function showModal(){
 function ppModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
-    t.innerHTML = `<div class="close">x</div><div class="heading firstH">Perks</div>`;
+    t.innerHTML = `<div class="heading firstH">Perks</div>`;
     t.innerHTML += `<div class="perkRow"><div class="perkText" style="width: 20%;">Perk</div><div class="perkText" style="width: 55%;">Description</div><div class="perkText" style="width: 20%;">Cost</div><div style="width: 11.5rem;"></div></div>`
     let perks = Object.keys( game.prestige.perks );
     for( p in perks ){
@@ -1250,7 +1252,7 @@ function ppModal(){
 function infoModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
-    t.innerHTML = `<div class="close">x</div>
+    t.innerHTML = `
     <div class="heading firstH">General Information</div>
     <div class="deets"><b>Controls</b></div>
     <div class="deets">You can "rapid-press" any button by just clicking it and holding down the mouse button</div>
@@ -1282,14 +1284,12 @@ function infoModal(){
     </div>
     <div class="deets"></div>
     <div class="deets"><b>Tips & General Advice</b></div>
-    <div class="deets">Achievements matter!</div>
-    <div class="deets ind">The ones marked <i>Finite</i> speed up the animation time of the dice rolling</div>
-    <div class="deets ind">The ones marked <i>Infinite</i> may be achieved again and again, and keep adding bonuses when gained</div>
-    <div class="deets">After your first Prestige at one million points (or more), you will be able to purchase Perks (the first costs 2PP)</div>
-    <div class="deets">The cost of Perks does <u>not</u> reflect their relative value - Choose wisely based on your play stye</div>
-    <div class="deets">Depending on the stage of the game and Perks you have bought, the optimal strategy will change drastically</div>
+    <div class="deets"><i>Finite</i> Achievements speed up the animation time of the dice rolling</div>
+    <div class="deets"><i>Infinite</i> Achievements may be achieved again and again, and keep adding bonuses when gained</div>
+    <div class="deets"><i>Hidden</i> Achievements probably don't even exist, but if they did, they'd give you cool new capabilities</div>
+    <div class="deets">After your first Prestige at one million points (or more), you will be gain access to Perks</div>
     <div class="deets">Blank-face dice are completely ignored for the purposes of calculating score (including their ascension level!)</div>
-    <div class="deets">The Results rows can be a bit confusing - you'll figure it out ... only the final number matters anyway ;)</div>
+    <div class="deets">The Results rows can be a bit confusing - you'll figure it out ... only the final number really matters anyway ;)</div>
     <div class="deets"></div>
     <div class="deets"><b>Stuck?</b></div>
     <div class="generalText"><a>Perform a </a><div class="button softReset">Soft Reset</div><a> to reset to your last Prestige, or if you want to clear everything, perform a </a><div class="button hardReset">Hard Reset</div></div>
@@ -1308,19 +1308,19 @@ function achieveModal(){
             <div class="dCol f7 padMe"></div>
             <div class="dCol f8 padMe"></div>
             <div class="dCol f9 padMe"></div>`;
-    if( ach.hidden.populist ){
-        q += `<div class="dCol f10 padMe"></div>
-            <div class="dCol f11 padMe"></div>
-            <div class="dCol f12 padMe"></div>
-            <div class="dCol f13 padMe"></div>
-            <div class="dCol f14 padMe"></div>
-            <div class="dCol f15 padMe"></div>
-            <div class="dCol f16 padMe"></div>
-            <div class="dCol f17 padMe"></div>
-            <div class="dCol f18 padMe"></div>
-            <div class="dCol f19 padMe"></div>`
-    }
-    t.innerHTML = `<div class="close">x</div>
+    // if( ach.hidden.populist ){
+    //     q += `<div class="dCol f10 padMe"></div>
+    //         <div class="dCol f11 padMe"></div>
+    //         <div class="dCol f12 padMe"></div>
+    //         <div class="dCol f13 padMe"></div>
+    //         <div class="dCol f14 padMe"></div>
+    //         <div class="dCol f15 padMe"></div>
+    //         <div class="dCol f16 padMe"></div>
+    //         <div class="dCol f17 padMe"></div>
+    //         <div class="dCol f18 padMe"></div>
+    //         <div class="dCol f19 padMe"></div>`
+    // }
+    t.innerHTML = `
     <div class="heading firstH">Finite Achievements</div>
     <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.5% (additive), currently -${numDisplay( ( 0.5 * ach.balance.finite ) )}%</div>
     <div class="achTable">
@@ -1414,7 +1414,7 @@ function buildInfiniteTable(){
 function hiddenModal(){
     document.querySelector(`.modal`).classList.remove(`noDisplay`);
     let t = document.querySelector(`.modalContainer`);
-    t.innerHTML = `<div class="close">x</div>
+    t.innerHTML = `
     <div class="heading firstH">Hidden Achievements</div>`
     if( ach.hidden.masochist ){
         let masochist = document.createElement(`div`);
@@ -1428,17 +1428,17 @@ function hiddenModal(){
         <div class="deets">Good luck with that.</div>`
         t.appendChild( masochist );
     }
-    if( ach.hidden.populist ){
-        let populist = document.createElement(`div`);
-        populist.classList = `intrusion`;
-        populist.innerHTML = `<div class="heading">Populist</div>
-        <div class="deets">Okay okay - you got a nine on ever face of every dice. Why though? Just to see what might happen?</div>
-        <div class="deets">Well now this has happened.</div>
-        <div class="deets">You can now increase the face of any die up to 19 pips.</div>
-        <div class="deets">Finite Achievements have been extended to accomodate new possibilities.</div>
-        <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
-        t.appendChild( populist );
-    }
+    // if( ach.hidden.populist ){
+    //     let populist = document.createElement(`div`);
+    //     populist.classList = `intrusion`;
+    //     populist.innerHTML = `<div class="heading">Populist</div>
+    //     <div class="deets">Okay okay - you got a nine on ever face of every dice. Why though? Just to see what might happen?</div>
+    //     <div class="deets">Well now this has happened.</div>
+    //     <div class="deets">You can now increase the face of any die up to 19 pips.</div>
+    //     <div class="deets">Finite Achievements have been extended to accomodate new possibilities.</div>
+    //     <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
+    //     t.appendChild( populist );
+    // }
     if( ach.hidden.modPips ){
         let modPips = document.createElement(`div`);
         modPips.classList = `intrusion`;
@@ -1544,12 +1544,18 @@ setInterval(() => { tickDown() }, game.tickTime );
 /*
 TODO
 
-Loadouts ...
+Make Prestige AutoDoot appear at the right times
+
+Rewire auto ascend to reaching minASC = 7 (all dice looped through to the second time of blue)
+- Automate Ascension going forard
+- Every rank of ascension adds 1% to the resultant PP ?
+
 All Automation On / Off
 Move lifetime / auto achievements to Hidden with snarky text
 
+Get a number of junk rolls, gain a junk roll multiplier which is based on total junk rolls rolled
+
 Toasties
-Make the X to close the modal sticky
 
 BORING
 If you get the same face value array 100 times in a row
@@ -1568,13 +1574,6 @@ If you hit 10,000 manual rolls
 
 
 IDEAS
-
-
-Loadout (Save and Restore)
-- Destroy on Prestige
-- Destroy on Ascend
-
-Ante pips (even number only) for a chance to gain or lose 50% of them - chance is straight 50/50
 
 Prestige Perks
 - Unspent, Unplaced Pips help somehow ?
