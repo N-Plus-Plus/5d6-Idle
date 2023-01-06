@@ -390,8 +390,6 @@ function ascendDie( d ){
     game.pips -= p;
     updateFaces( `all` );
     showUnfolded( d );
-    game.volatile.updateHeader = true;
-    game.volatile.updatePpr = true;
     updateAscCosts();
     checkAchieve( `infinite`, `ascension`, game.dice[d].asc );
     let min = Infinity;
@@ -399,6 +397,9 @@ function ascendDie( d ){
     checkAchieve( `infinite`, `minAscension`, min );
     if( game.auto.ascend.countDown > 0 ){ game.auto.ascend.countDown--; }
     else if( !game.auto.ascend.unlocked ){ unlock( `auto`, `ascend` ); }
+    game.volatile.updateHeader = true;
+    game.volatile.updatePpr = true;
+    game.volatile.updateLockedUI = true;
 }
 
 function unlock( category, type ){
@@ -471,8 +472,6 @@ function refreshLockedUI(){
             }
         }
     }
-    if( game.auto.loadOut.unlocked == true ){}
-
     let h = false;
     for( a in ach.hidden ){ if( ach.hidden[a] ){ h = true; } }
     if( h ){ document.querySelector(`.hidden`).classList.remove(`noDisplay`); }
@@ -714,10 +713,10 @@ var game = {
         , watermark: 0
         , perks: {
             startPips: { impact: 1, amt: 0, cost: 2, costScale: 2, type: `multiply`,    disp: `Head Start`, desc: `+1 Pip available after prestige`  }
-            , upgPower: { impact: 0.9, amt: 0, cost: 5, costScale: 2, type: `power`,   disp: `Multiplier Cost`, desc: `Multiplier upgrade price creep reduced by 10%` }
+            , upgPower: { impact: 0.9, amt: 0, cost: 8, costScale: 2, type: `power`,   disp: `Multiplier Cost`, desc: `Multiplier upgrade price creep reduced by 10%` }
+            , pipPower: { impact: 0.8, amt: 0, cost: 20, costScale: 2, type: `power`,   disp: `Pip Price Power`, desc: `Pip price creep reduced by 20%` }
             , autoTime: { impact: 0.75, amt: 0, cost: 25, costScale: 2, type: `power`,  disp: `Speedy Roller`, desc: `Reduce time between rolls by 25%` }
             , square: { impact: 1, amt: 0, cost: 50, costScale: 2, type: `multiply`,    disp: `Adding Squared`, desc: `Dice values gain x<sup>+1 </sup> for additions` }
-            , pipPower: { impact: 0.8, amt: 0, cost: 100, costScale: 2, type: `power`,   disp: `Pip Price Power`, desc: `Pip price creep reduced by 20%` }
             , spares: { impact: 1, amt: 0, cost: 250, costScale: 2, type: `multiply`,   disp: `Spare PPower`, desc: `Results x floor( log10( unspent PP ) )` }
             , upgrades: { impact: 0.1, amt: 0, cost: 1e3, costScale: 2, type: `multiply`,   disp: `Every Bit Helps`, desc: `Multipliers get +0.1% for every upgrade bought` }
         }
@@ -747,7 +746,7 @@ var game = {
         ascend: { unlocked: false, countDown: 1e2 }
         , upgrades: { unlocked: false, countDown: 1e4, state: { five: false, four: false, three: false, two: false, twoPair: false, fullHouse: false, straight: false } }
         , pips: { unlocked: false, countDown: 1e3, on: false }
-        , loadOut: { unlocked: false, countDown: 2.5e3, setup: [ [], [], [], [], [] ], on: false }
+        , loadOut: { unlocked: false, countDown: 2e3, setup: [ [], [], [], [], [] ], on: false }
         , prestige: { unlocked: false, countDown: 50, on: false }
     }
 }
@@ -1443,7 +1442,7 @@ function hiddenModal(){
         let modPips = document.createElement(`div`);
         modPips.classList = `intrusion`;
         modPips.innerHTML = `<div class="heading">Power Pipper</div>
-        <div class="deets">You've manually added 2,500 pips since you started playing. That's a lot.</div>
+        <div class="deets">You've manually added 2,000 pips since you started playing. That's a lot.</div>
         <div class="deets">To help improve your quality of life, you can now save Loadouts for your dice.</div>
         <div class="deets">Each die can have only one Loadout saved.</div>
         <div class="deets">When active, your pips will be automatically spent and placed until your die matches its Loadout.</div>
@@ -1543,8 +1542,6 @@ setInterval(() => { tickDown() }, game.tickTime );
 
 /*
 TODO
-
-Make Prestige AutoDoot appear at the right times
 
 Rewire auto ascend to reaching minASC = 7 (all dice looped through to the second time of blue)
 - Automate Ascension going forard
