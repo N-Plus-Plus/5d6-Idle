@@ -262,9 +262,9 @@ function modPips( d, f, up ){
                 x += game.dice[d].faces[f];
             }
         }
-        // if( x == 270 ){
-        //     gainAchievement( `hidden`, `populist` );
-        // }
+        if( x == 270 ){
+            gainAchievement( `hidden`, `populist` );
+        }
     }
     
     showUnfolded();
@@ -275,7 +275,7 @@ function modPips( d, f, up ){
 
 function getFaceMax(){
     let n = 9;
-    // if( ach.hidden.populist ){ n = 19; }
+    if( ach.hidden.populist ){ n = 19; }
     return n;
 }
 
@@ -812,14 +812,14 @@ function checkFinite( m, arr ){
 
 function gainAchievement( group, type, subtype ){
     rebalanceAchievement();
-    // if( group == `hidden` && type == `populist` ){
-    //     ach.hidden.populist = true;
-    //     for( let i = 10; i < 20; i++ ){
-    //         if( ach.finite[`r${i}`] == undefined ){
-    //             ach.finite[`r${i}`] = { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false };
-    //         }
-    //     }
-    // }
+    if( group == `hidden` && type == `populist` ){
+        ach.hidden.populist = true;
+        for( let i = 10; i < 20; i++ ){
+            if( ach.finite[`r${i}`] == undefined ){
+                ach.finite[`r${i}`] = { five: false, four: false, three: false, two: false, straight: false, twoPair: false, fullHouse: false };
+            }
+        }
+    }
     console.log( `Achievement: `, group, type, subtype );
 }
 
@@ -913,7 +913,7 @@ function autoPips(){
 }
 function autoPrestige(){
     if( game.auto.prestige.on ){
-        if( prestigeGains() >= game.prestige.watermark ){ prestige(); }
+        if( prestigeGains() >= game.prestige.watermark * 0.9 ){ prestige(); }
     }
 }
 
@@ -986,6 +986,33 @@ function parseMultiplier( arr ){
     }
     return [ 1, multi, [] ];
 }
+
+// function parseMultiplier(arr) {
+//     const u = getPerk(`upgrades`);
+//     const mod = u > 0 ? 1 + getPerk(`upgrades`) * getUpgradeRanks() / 100 : 1;
+//     const counts = arr.reduce((counts, face) => {
+//       counts[face] = (counts[face] || 0) + 1;
+//       return counts;
+//     }, {});
+//     const multiples = Object.entries(counts).filter(([, count]) => count > 1);
+//     multiples.sort(([, countA], [, countB]) => countB - countA);
+//     let multi;
+//     let faces;
+//     if (multiples.length === 5) { multi = `straight`; faces = arr; }
+//     else { const [face, count] = multiples[0];
+//       if (count === 5) { multi = `five`; faces = [face]; }
+//       else if (count === 4) { multi = `four`; faces = [face]; }
+//       else if (count === 3) { 
+//         if (multiples.length > 1) { multi = `fullHouse`; faces = [face, multiples[1][0]]; }
+//         else { multi = `three`; faces = [face]; }
+//       }
+//       else if (count === 2) {
+//         if (multiples.length > 1) { multi = `twoPair`; faces = [face, multiples[1][0]]; }
+//         else { multi = `two`; faces = [face]; }
+//       }
+//     }
+//     return [multiplier[multi] * (1 + game.upgrades[multi]) * mod, multi, faces || []];
+//   }
 
 function getUpgradeRanks(){
     let o = 0;
@@ -1130,7 +1157,7 @@ function showPpr(){
         let t = document.querySelector(`[data-ref="unique"]`);
         t.parentElement.classList.remove(`noDisplay`);
         let x = 100000;
-        // if( ach.hidden.populist ){ x = 3200000; }
+        if( ach.hidden.populist ){ x = 3200000; }
         t.innerHTML = numDisplay( Object.keys( game.arrs ).length ) + ` / ${numDisplay( x )}`;
         let u = document.querySelector(`[data-ref="uSet"]`);
         u.parentElement.classList.remove(`noDisplay`);
@@ -1307,18 +1334,18 @@ function achieveModal(){
             <div class="dCol f7 padMe"></div>
             <div class="dCol f8 padMe"></div>
             <div class="dCol f9 padMe"></div>`;
-    // if( ach.hidden.populist ){
-    //     q += `<div class="dCol f10 padMe"></div>
-    //         <div class="dCol f11 padMe"></div>
-    //         <div class="dCol f12 padMe"></div>
-    //         <div class="dCol f13 padMe"></div>
-    //         <div class="dCol f14 padMe"></div>
-    //         <div class="dCol f15 padMe"></div>
-    //         <div class="dCol f16 padMe"></div>
-    //         <div class="dCol f17 padMe"></div>
-    //         <div class="dCol f18 padMe"></div>
-    //         <div class="dCol f19 padMe"></div>`
-    // }
+    if( ach.hidden.populist ){
+        q += `<div class="dCol f10 padMe"></div>
+            <div class="dCol f11 padMe"></div>
+            <div class="dCol f12 padMe"></div>
+            <div class="dCol f13 padMe"></div>
+            <div class="dCol f14 padMe"></div>
+            <div class="dCol f15 padMe"></div>
+            <div class="dCol f16 padMe"></div>
+            <div class="dCol f17 padMe"></div>
+            <div class="dCol f18 padMe"></div>
+            <div class="dCol f19 padMe"></div>`
+    }
     t.innerHTML = `
     <div class="heading firstH">Finite Achievements</div>
     <div class="deets">Each Multiplier combo below achieved with the face value shown speeds up the animation time by 0.5% (additive), currently -${numDisplay( ( 0.5 * ach.balance.finite ) )}%</div>
@@ -1427,17 +1454,17 @@ function hiddenModal(){
         <div class="deets">Good luck with that.</div>`
         t.appendChild( masochist );
     }
-    // if( ach.hidden.populist ){
-    //     let populist = document.createElement(`div`);
-    //     populist.classList = `intrusion`;
-    //     populist.innerHTML = `<div class="heading">Populist</div>
-    //     <div class="deets">Okay okay - you got a nine on ever face of every dice. Why though? Just to see what might happen?</div>
-    //     <div class="deets">Well now this has happened.</div>
-    //     <div class="deets">You can now increase the face of any die up to 19 pips.</div>
-    //     <div class="deets">Finite Achievements have been extended to accomodate new possibilities.</div>
-    //     <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
-    //     t.appendChild( populist );
-    // }
+    if( ach.hidden.populist ){
+        let populist = document.createElement(`div`);
+        populist.classList = `intrusion`;
+        populist.innerHTML = `<div class="heading">Populist</div>
+        <div class="deets">Okay okay - you got a nine on ever face of every dice. Why though? Just to see what might happen?</div>
+        <div class="deets">Well now this has happened.</div>
+        <div class="deets">You can now increase the face of any die up to 19 pips.</div>
+        <div class="deets">Finite Achievements have been extended to accomodate new possibilities.</div>
+        <div class="deets">This new cap of 19 is not going to be increased again, so don't be disappointed if you try and nothing happens.</div>`
+        t.appendChild( populist );
+    }
     if( ach.hidden.modPips ){
         let modPips = document.createElement(`div`);
         modPips.classList = `intrusion`;
@@ -1542,6 +1569,10 @@ setInterval(() => { tickDown() }, game.tickTime );
 
 /*
 TODO
+
+Build a Modale screen which unlocks after you get to 95,000 / 100,000 which prints out the missing combinations
+
+Slider for Auto-Prestige (as % of watermark)
 
 Rewire auto ascend to reaching minASC = 7 (all dice looped through to the second time of blue)
 - Automate Ascension going forard
